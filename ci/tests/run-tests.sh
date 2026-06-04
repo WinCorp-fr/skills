@@ -1,13 +1,18 @@
 #!/usr/bin/env bash
 # run-tests.sh — self-check de leak-scan.sh sur un corpus synthetique.
-# Donnees 100% FICTIVES (SIREN 123456789, jamais un vrai client). Construit un arbre temporaire
-# et verifie : skills propres -> exit 0 ; toute fuite -> exit 2. Echec d'un cas = exit 1.
+# Donnees 100% FICTIVES (SIREN 123456789, nom de demo ZZ-CLIENT-DEMO-ZZ ; jamais un vrai client/nom).
+# Construit un arbre temporaire et verifie : skills propres -> exit 0 ; toute fuite -> exit 2.
+# Teste AUSSI le mecanisme de denylist locale via une taxonomie locale synthetique (LEAK_LOCAL_PATTERNS).
 set -u
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCAN="$HERE/../leak-scan.sh"
 ROOT="$(mktemp -d 2>/dev/null || echo "/tmp/leakscan.$$")"; mkdir -p "$ROOT"
 trap 'rm -rf "$ROOT"' EXIT
 PASSED=0; FAILED=0
+
+# Denylist locale SYNTHETIQUE (teste le mecanisme sans aucun nom reel dans ce depot public)
+export LEAK_LOCAL_PATTERNS="$ROOT/.local-patterns.txt"
+printf 'demo-client|||ZZ-CLIENT-DEMO-ZZ\n' > "$LEAK_LOCAL_PATTERNS"
 
 run_case() {  # $1=nom $2=relpath $3=exit_attendu ; contenu sur stdin
   local name="$1" rel="$2" want="$3"
@@ -44,7 +49,7 @@ name: doc
 tier: shared
 ---
 # Doc
-Exemple documente d'un mot-frontiere neutralise SPINEX LEAK-SCAN-IGNORE
+Exemple documente d'un chemin neutralise /Users/Tanfeuille/x LEAK-SCAN-IGNORE
 EOF
 
 # --- Doivent ETRE BLOQUES (exit 2) ---
@@ -80,12 +85,12 @@ tier: shared
 Numero fictif 123 456 789 separe par espaces.
 EOF
 
-run_case spinex-word "skills/sp/SKILL.md" 2 <<'EOF'
+run_case local-name "skills/ln/SKILL.md" 2 <<'EOF'
 ---
-name: sp
+name: ln
 tier: shared
 ---
-Contexte cabinet SPINEX a la ligne.
+Reference a un nom via la denylist locale : ZZ-CLIENT-DEMO-ZZ.
 EOF
 
 run_case perso-path "skills/pp/SKILL.md" 2 <<'EOF'

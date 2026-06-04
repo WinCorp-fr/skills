@@ -1,0 +1,3 @@
+# Denylist LOCALE de noms (cabinet/societes/clients) — JAMAIS versionnee, surtout pas en depot public.
+**/leak-patterns.local.txt
+.local-patterns.txt

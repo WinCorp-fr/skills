@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# leak-scan.sh — barriere anti-fuite confidentielle (SPINEX/TRIMAT/perso) pour WinCorp-fr/skills
+# leak-scan.sh — barriere anti-fuite confidentielle (donnees client/perso) pour WinCorp-fr/skills
 #
 # Source UNIQUE de detection, appelee par DEUX consommateurs (zero duplication, anti-drift) :
 #   - la CI GitHub (mode --tree, scanne l'arbre entier a chaque PR) = barriere serveur fail-closed
@@ -31,6 +31,19 @@ while IFS= read -r line || [ -n "$line" ]; do
   PAT_REGEX+=("${line#*|||}")
 done < "$PATTERNS_FILE"
 [ "${#PAT_REGEX[@]}" -gt 0 ] || { echo "FATAL: 0 pattern charge depuis $PATTERNS_FILE" >&2; exit 3; }
+
+# Denylist LOCALE optionnelle (noms cabinet/societes/clients) — JAMAIS versionnee (surtout pas
+# dans ce depot public). Chargee en complement des motifs structurels publics. Sur la CI publique
+# elle est absente -> seuls les motifs structurels + la grille allowlist s'appliquent.
+LOCAL_PATTERNS="${LEAK_LOCAL_PATTERNS:-$HOME/.claude/leak-patterns.local.txt}"
+if [ -f "$LOCAL_PATTERNS" ]; then
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in ''|\#*) continue ;; esac
+    case "$line" in *'|||'*) ;; *) continue ;; esac
+    PAT_LABELS+=("local:${line%%|||*}")
+    PAT_REGEX+=("${line#*|||}")
+  done < "$LOCAL_PATTERNS"
+fi
 
 # --- Allowlist des fichiers non-.md (globs) ---
 ALLOW_GLOBS=()

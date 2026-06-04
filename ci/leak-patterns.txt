@@ -19,10 +19,11 @@ claude-projects|||\.claude/projects
 claude-memory|||claude-memory
 onedrive|||OneDrive
 
-# --- Frontiere cabinet / societes (mots-frontiere, pas des secrets clients) ---
-cabinet-spinex|||\bSPINEX\b
-societe-trimat|||\bTRIMAT\b
-logiciel-fulll|||\bFulll\b
+# --- Noms de cabinet / societes / clients : VOLONTAIREMENT ABSENTS de ce fichier public ---
+# Les noms litteraux vivent dans une denylist LOCALE non versionnee, chargee a l'execution :
+#   ${LEAK_LOCAL_PATTERNS:-~/.claude/leak-patterns.local.txt}  (cf leak-scan.sh)
+# Raison : ce depot est PUBLIC. La barriere publique s'appuie sur les motifs STRUCTURELS
+# ci-dessus + la grille allowlist 'tier: shared'. Le hook local ajoute la detection par nom.
 
 # --- References memoire perso de Tan ---
 ref-feedback|||\bfeedback_[a-z0-9_]{3,}
@@ -31,7 +32,7 @@ etat-courant|||\betat_courant\b
 ref-project|||\bproject_[a-z][a-z0-9_]{3,}
 prompt-reprise|||\bprompt_reprise\b
 
-# --- Vault Obsidian perso (contient des decisions SPINEX) ---
+# --- Vault Obsidian perso (contient des decisions confidentielles) ---
 vault-perso|||wincorp-vault
 
 # --- Tier non partageable (un fichier client/personal ne doit jamais arriver ici) ---
