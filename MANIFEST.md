@@ -5,6 +5,3 @@
 - `retrospective` — tier: shared
 - `review-adversarial` — tier: shared
 - `review-edge-case-hunter` — tier: shared
-- `bonjour` — tier: shared
-- `bonne-nuit` — tier: shared
-- `recall` — tier: shared
