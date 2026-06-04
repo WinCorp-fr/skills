@@ -1,0 +1,18 @@
+# leak-scan.allow — globs de fichiers NON-.md explicitement autorises dans le tier shared.
+#
+# Modele ALLOWLIST (parade #3) : tout fichier non-.md ABSENT de cette liste est BLOQUE
+# (deny-by-default). Garder cette liste MINIMALE et auditee — chaque ajout = revue humaine.
+# Format : un motif (style glob 'case' bash, chemin relatif a la racine du depot) par ligne.
+#
+# Les .gitkeep sont toleres d'office (geres dans le scanner).
+# L'infra du scanner (ci/, .github/) est exclue du scan (elle contient les patterns par nature).
+#
+# Fichiers meta de depot (non-.md) toleres a la racine :
+.gitattributes
+.gitignore
+
+# Phase A : les skills sont 100% .md → aucun fichier de contenu non-.md. Liste vide volontairement.
+#
+# Exemples futurs (decommenter avec revue humaine explicite + revue du binaire) :
+# skills/*/assets/*.png
+# skills/*/data/*.csv

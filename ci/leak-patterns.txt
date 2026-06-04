@@ -1,0 +1,41 @@
+# leak-patterns.txt — taxonomie des motifs interdits dans WinCorp-fr/skills (tier shared)
+# Format : LABEL|||REGEX (grep -E). Une ligne par categorie. # = commentaire, lignes vides ignorees.
+#
+# REGLE PARADOXE (cf plan, parade #3) : catégories STRUCTURELLES / FRONTIERE uniquement.
+# AUCUN nom de client reel ici — un nom client en clair fuiterait dans le depot partage.
+# La detection des noms clients precis se fait via la denylist LOCALE non versionnee du hook
+# (~/.claude/projects/<slug>/memory/denylist-clients.txt), jamais dans ce fichier versionne.
+#
+# Echappatoire auditable : une ligne de fichier contenant LEAK-SCAN-IGNORE est exemptee.
+
+# --- Identifiants societe (SIREN / SIRET) ---
+siren-9-chiffres|||\b[0-9]{9}\b
+siren-separe|||\b[0-9]{3}[ .][0-9]{3}[ .][0-9]{3}\b
+siret-14-chiffres|||\b[0-9]{14}\b
+
+# --- Chemins machine / perso ---
+chemin-user-perso|||[Uu]sers/(Tanfeuille|tanph)\b
+claude-projects|||\.claude/projects
+claude-memory|||claude-memory
+onedrive|||OneDrive
+
+# --- Frontiere cabinet / societes (mots-frontiere, pas des secrets clients) ---
+cabinet-spinex|||\bSPINEX\b
+societe-trimat|||\bTRIMAT\b
+logiciel-fulll|||\bFulll\b
+
+# --- References memoire perso de Tan ---
+ref-feedback|||\bfeedback_[a-z0-9_]{3,}
+ref-memory-dir|||(^|[^A-Za-z0-9_])memory/
+etat-courant|||\betat_courant\b
+ref-project|||\bproject_[a-z][a-z0-9_]{3,}
+prompt-reprise|||\bprompt_reprise\b
+
+# --- Vault Obsidian perso (contient des decisions SPINEX) ---
+vault-perso|||wincorp-vault
+
+# --- Tier non partageable (un fichier client/personal ne doit jamais arriver ici) ---
+tier-non-partage|||^tier:[[:space:]]*(client|personal)\b
+
+# --- Identite perso (commits shared = identite WinCorp, jamais perso) ---
+email-perso|||tanfeuille@gmail

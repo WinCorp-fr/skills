@@ -1,0 +1,49 @@
+name: leak-scan
+# Barriere SERVEUR fail-closed (required status check). C'est la SEULE barriere non contournable :
+# elle s'applique a tout merge vers main quel que soit l'auteur ou l'outil (CLI, web UI, autre dev).
+# Le hook local block-confidential-to-shared.sh n'est qu'un filet en amont. Cf plan, parade #1.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Self-check du scanner (corpus synthetique)
+        run: bash ci/leak-scan.sh --self-check
+
+      - name: Scan anti-fuite de l'arbre entier
+        run: bash ci/leak-scan.sh --tree .
+
+      - name: Scan des messages de commit (defense en profondeur)
+        run: |
+          base="${{ github.event.pull_request.base.sha }}"
+          head="${{ github.sha }}"
+          if [ -n "$base" ]; then
+            git log --format='%H %s%n%b' "$base..$head" > /tmp/commit-msgs.txt 2>/dev/null || true
+          else
+            git log -50 --format='%H %s%n%b' > /tmp/commit-msgs.txt 2>/dev/null || true
+          fi
+          # Reutilise la taxonomie (source unique) sur les messages
+          rc=0
+          while IFS= read -r line; do
+            case "$line" in ''|\#*) continue ;; esac
+            case "$line" in *'|||'*) ;; *) continue ;; esac
+            rgx="${line#*|||}"; lbl="${line%%|||*}"
+            if grep -nE "$rgx" /tmp/commit-msgs.txt | grep -v 'LEAK-SCAN-IGNORE' >/dev/null 2>&1; then
+              echo "X [message-commit/$lbl] motif confidentiel dans un message de commit"
+              rc=2
+            fi
+          done < ci/leak-patterns.txt
+          exit $rc

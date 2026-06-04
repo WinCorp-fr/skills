@@ -1,0 +1,8 @@
+# Forcer LF sur les scripts/textes — un .sh en CRLF (Windows) casse bash sur la CI Linux.
+*.sh   text eol=lf
+*.yml  text eol=lf
+*.md   text eol=lf
+*.txt  text eol=lf
+*.allow text eol=lf
+.gitattributes text eol=lf
+.gitkeep text eol=lf
