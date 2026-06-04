@@ -1,5 +1,7 @@
 # MANIFEST — skills du tier shared
 
-> Index (projection des frontmatters `tier:`). Régénéré au build, commité pour audit humain.
+> Index généré (projection des frontmatters `tier:`). Régénéré au build.
 
-_(aucun skill en Phase A1 — la barrière d'abord, les skills arrivent en A2 par Pull Request)_
+- `retrospective` — tier: shared
+- `review-adversarial` — tier: shared
+- `review-edge-case-hunter` — tier: shared
