@@ -11,7 +11,9 @@
 .gitattributes
 .gitignore
 
-# Phase A : les skills sont 100% .md → aucun fichier de contenu non-.md. Liste vide volontairement.
+# Outil d'installation des skills partages (deploie skills/* vers ~/.claude/skills/).
+# Contenu .sh scanne par le denylist comme tout fichier textuel — revue humaine OK 2026-06-05.
+install-skills.sh
 #
 # Exemples futurs (decommenter avec revue humaine explicite + revue du binaire) :
 # skills/*/assets/*.png
