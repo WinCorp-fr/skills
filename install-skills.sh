@@ -29,4 +29,14 @@ for skill in "$SRC"/*/; do
   count=$((count + 1))
 done
 
+# Helpers partagés (scripts génériques appelés par les skills -team) — déployés à plat dans
+# ~/.claude/skills/ pour un chemin d'appel fixe, indépendant de l'emplacement du clone.
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+for helper in personal-sync.sh bootstrap-personal-mirror.sh; do
+  if [ -f "$REPO_ROOT/$helper" ]; then
+    cp "$REPO_ROOT/$helper" "$DEST/$helper"
+    echo "  ✓ (helper) $helper"
+  fi
+done
+
 echo "→ $count skill(s) partagé(s) déployé(s) dans $DEST"

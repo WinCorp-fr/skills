@@ -49,7 +49,27 @@ name: doc
 tier: shared
 ---
 # Doc
-Exemple documente d'un chemin neutralise /Users/Tanfeuille/x LEAK-SCAN-IGNORE
+Le miroir cree un dossier claude-memory LEAK-SCAN-IGNORE (structure generique = soft-ignorable).
+EOF
+
+# HIGH-1 (2026-06-09) : le marqueur LEAK-SCAN-IGNORE ne neutralise JAMAIS un motif DUR.
+run_case ignore-hatch-hard "skills/doc2/SKILL.md" 2 <<'EOF'
+---
+name: doc2
+tier: shared
+---
+# Doc2
+Tentative de neutraliser un chemin perso /Users/Tanfeuille/x LEAK-SCAN-IGNORE -> doit BLOQUER.
+EOF
+
+# HIGH-2 (2026-06-09) : variante slug dash-form du chemin perso (separateur tiret).
+run_case slug-dash "skills/doc3/SKILL.md" 2 <<'EOF'
+---
+name: doc3
+tier: shared
+---
+# Doc3
+Slug Claude Code C--Users-tanph-Documents-wincorp-workspace en dur -> doit BLOQUER.
 EOF
 
 # --- Doivent ETRE BLOQUES (exit 2) ---

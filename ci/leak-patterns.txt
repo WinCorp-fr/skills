@@ -15,6 +15,8 @@ siret-14-chiffres|||\b[0-9]{14}\b
 
 # --- Chemins machine / perso ---
 chemin-user-perso|||[Uu]sers/(Tanfeuille|tanph)\b
+# Variante "slug" Claude Code (séparateur tiret) : C--Users-tanph-Documents-... (HIGH-2, 2026-06-09).
+chemin-user-perso-slug|||[Uu]sers-(Tanfeuille|tanph)\b
 claude-projects|||\.claude/projects
 claude-memory|||claude-memory
 onedrive|||OneDrive

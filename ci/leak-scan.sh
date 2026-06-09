@@ -85,10 +85,26 @@ scan_filename() {  # $1 = relpath — un nom de fichier peut encoder un SIREN/ma
   done
 }
 
+# is_soft_ignorable <label> — seuls les motifs de STRUCTURE générique Claude Code peuvent être
+# exemptés par un marqueur LEAK-SCAN-IGNORE. Les motifs DURS (SIREN/SIRET/chemin perso/email/
+# denylist locale/tier) ne sont JAMAIS neutralisables : sinon un éditeur collant le marqueur sur
+# une ligne portant un vrai secret ouvrirait un trou (durcissement audit 2026-06-09, HIGH-1).
+is_soft_ignorable() {
+  case "$1" in
+    claude-memory|claude-projects|ref-memory-dir) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 scan_content() {  # $1 = abspath, $2 = relpath
   local abs="$1" rel="$2" i hits
   for i in "${!PAT_REGEX[@]}"; do
-    hits=$(grep -nE "${PAT_REGEX[$i]}" "$abs" 2>/dev/null | grep -v "$IGNORE_MARK" | head -2)
+    if is_soft_ignorable "${PAT_LABELS[$i]}"; then
+      hits=$(grep -nE "${PAT_REGEX[$i]}" "$abs" 2>/dev/null | grep -v "$IGNORE_MARK" | head -2)
+    else
+      # Motif DUR : le marqueur LEAK-SCAN-IGNORE ne l'exempte PAS.
+      hits=$(grep -nE "${PAT_REGEX[$i]}" "$abs" 2>/dev/null | head -2)
+    fi
     [ -n "$hits" ] && report "${PAT_LABELS[$i]}" "$rel : $(printf '%s' "$hits" | tr '\n' ' ' | cut -c1-160)"
   done
 }

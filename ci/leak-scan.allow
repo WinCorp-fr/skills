@@ -15,6 +15,20 @@
 # Contenu .sh scanne par le denylist comme tout fichier textuel — revue humaine OK 2026-06-05.
 install-skills.sh
 
+# Bootstrap du miroir perso d'un dev (cree claude-memory/ + snapshots + global).
+# Generique (lit DEV_PERSONAL_REPO du profil), public-safe. Contenu .sh scanne par le
+# denylist comme tout fichier textuel — revue humaine OK 2026-06-09 (Phase C sync multi-dev).
+bootstrap-personal-mirror.sh
+
+# Sync mémoire d'un dev vers SON miroir perso (--restore/--backup), appele par bonjour/bonne-nuit-team.
+# Generique, public-safe ; occurrences de noms de structure marquees LEAK-SCAN-IGNORE.
+# Contenu .sh scanne par le denylist — revue humaine OK 2026-06-09 (Phase C sync multi-dev).
+personal-sync.sh
+
+# Template de profil d'identite dev (placeholders, aucune valeur reelle). Non-.md.
+# Contenu scanne par le denylist — revue humaine OK 2026-06-09 (Phase C sync multi-dev).
+profile.env.template
+
 # Scanner Python du skill audit-dette (tier shared). Contenu .py scanne par le
 # denylist comme tout fichier textuel — revue humaine OK 2026-06-09.
 skills/audit-dette/scan.py
