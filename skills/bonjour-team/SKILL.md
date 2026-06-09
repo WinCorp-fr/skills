@@ -59,6 +59,33 @@ else
 fi
 ```
 
+### Étape 1bis — Skills partagés à jour + mémoire perso restaurée (sync multi-dev)
+
+Deux compléments, sans effet s'ils ne sont pas configurés (deny-by-default) :
+- **Skills partagés** : si `wincorp-skills` est propre, le redéployer pour garder tes skills d'équipe à jour (`install-skills.sh`, idempotent — comble le trou « pull du repo sans redéploiement »).
+- **Mémoire perso** : restaurer ta mémoire Claude Code depuis TON miroir privé, si `DEV_PERSONAL_REPO` est déclaré dans `~/.claude/profile.env`. Sans profil → skip propre (le mainteneur a son propre `/bonjour`).
+
+```bash
+WORKSPACE="$HOME/Documents/wincorp-workspace"
+echo ""
+echo "=== Skills partagés + mémoire perso ==="
+# (a) Rafraîchir les skills partagés depuis le clone (uniquement s'il est propre).
+SKREPO="$WORKSPACE/wincorp-skills"
+if [ ! -d "$SKREPO/.git" ]; then
+  echo "  [skip-attendu] wincorp-skills non cloné — 'gh repo clone WinCorp-fr/skills wincorp-skills' puis 'bash wincorp-skills/install-skills.sh'"
+elif [ -n "$(git -C "$SKREPO" status --short 2>/dev/null)" ]; then
+  echo "  [skip-attendu] skills partagés : modifs locales en cours (édition) — pas de redéploiement auto"
+elif [ -f "$SKREPO/install-skills.sh" ]; then
+  bash "$SKREPO/install-skills.sh" 2>&1 | tail -3
+fi
+# (b) Restaurer la mémoire perso depuis le miroir du dev (skip propre si pas de profil).
+if [ -f "$HOME/.claude/skills/personal-sync.sh" ]; then
+  bash "$HOME/.claude/skills/personal-sync.sh" --restore 2>&1 | sed 's/^/  /'
+else
+  echo "  [skip-attendu] personal-sync.sh absent — lancer 'bash wincorp-skills/install-skills.sh' une fois"
+fi
+```
+
 ### Étape 2 — Secrets partagés (coffre garm) — vérification lecture seule
 
 Si le coffre `wincorp-garm` est cloné et la clé age présente, pull + `--self-check` (ne modifie rien). On **n'applique pas** automatiquement (le déploiement reste un acte explicite).
@@ -111,3 +138,4 @@ Afficher en clair :
 - Nombre de repos à jour vs avec modifs locales (à traiter via `/bonne-nuit-team`) vs en échec de pull.
 - Rappel : avant de coder sur un repo, lire son `README.md` + `.claude/CLAUDE.md` (chaque repo documente son propre démarrage : Python, Next.js, Vite…).
 - Rappel : « Fait » = vérifié (tests verts), pas « ça devrait marcher ».
+- **Rappel auto-sync** : si tu as un profil perso, ta mémoire vient d'être restaurée — pense à lancer **`/bonne-nuit-team` en fin de session** pour la sauvegarder (sinon les notes du jour ne sont pas poussées). Runbook : `wincorp-skills/EXPLOITATION.md`.
