@@ -39,11 +39,15 @@ if ! command -v git >/dev/null 2>&1; then
 fi
 cd "$WORKSPACE" 2>/dev/null || { echo "  ✗ $WORKSPACE introuvable"; exit 0; }
 shopt -s nullglob
-modified=0
+modified=0; sk_modified=0
 # 2>/dev/null sur git status : silence le bruit si un dossier wincorp-* n'est pas un repo propre.
 for repo in wincorp-*/; do
   [ -d "$repo/.git" ] || continue
   [ "${repo%/}" = "wincorp-garm" ] && continue   # coffre secrets, lecture seule côté dev (D6)
+  if [ "${repo%/}" = "wincorp-skills" ]; then     # skills partagés : publication par PR (Étape 3), jamais push direct
+    [ -n "$(git -C "$repo" status --short 2>/dev/null)" ] && sk_modified=1
+    continue
+  fi
   if [ -n "$(git -C "$repo" status --short 2>/dev/null)" ]; then
     modified=$((modified + 1))
     echo "  ● ${repo%/} :"
@@ -52,6 +56,7 @@ for repo in wincorp-*/; do
 done
 shopt -u nullglob
 [ "$modified" -eq 0 ] && echo "  Aucun repo modifié — rien à committer."
+[ "$sk_modified" -eq 1 ] && echo "  ⚠ wincorp-skills modifié → publier via branche + PR (cf Étape 3), JAMAIS push direct (main protégé)."
 ```
 
 ### Étape 2 — Tests des repos modifiés (pré-checks dette-zero)
@@ -68,6 +73,7 @@ shopt -s nullglob
 for repo in wincorp-*/; do
   [ -d "$repo/.git" ] || continue
   [ "${repo%/}" = "wincorp-garm" ] && continue   # coffre secrets (D6)
+  [ "${repo%/}" = "wincorp-skills" ] && continue # skills partagés : publiés par PR, hors boucle push direct
   [ -n "$(git -C "$repo" status --short 2>/dev/null)" ] || continue
   name="${repo%/}"; rc=0
   # Détection JS : clé "test" stricte (évite faux positif "testimonials"/"test-suite").
@@ -116,6 +122,22 @@ Modèle (à adapter par repo — ne pas exécuter en boucle aveugle) :
 ```
 
 Jamais `--force`. Jamais committer `wincorp-garm`.
+
+**`wincorp-skills` (skills partagés)** : son `main` est **protégé** (PR obligatoire + check `scan`). Ne JAMAIS y faire de push direct (il échouerait). Si tu as modifié un skill partagé, publie-le **via branche + PR** : `git -C wincorp-skills checkout -b skills-sync/<toi>/<date>` → commit → `git push -u origin <branche>` → `gh pr create --base main`. Exclu-le donc du push direct de cette boucle, comme `wincorp-garm`.
+
+### Étape 3bis — Sauvegarde de la mémoire perso (miroir privé du dev, sync multi-dev)
+
+Sauvegarde ta mémoire Claude Code vers TON miroir privé (`DEV_PERSONAL_REPO` du profil) puis pousse — au prochain `/bonjour-team` sur ton autre PC, elle sera restaurée. Sans profil déclaré → skip propre (le mainteneur a son propre `/bonne-nuit`).
+
+```bash
+echo ""
+echo "=== Sauvegarde mémoire perso (miroir privé) ==="
+if [ -f "$HOME/.claude/skills/personal-sync.sh" ]; then
+  bash "$HOME/.claude/skills/personal-sync.sh" --backup 2>&1 | sed 's/^/  /'
+else
+  echo "  [skip-attendu] personal-sync.sh absent — pas de miroir mémoire configuré (cf onboarding)"
+fi
+```
 
 ### Étape 4 — Checklist de sortie
 
