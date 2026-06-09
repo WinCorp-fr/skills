@@ -3,6 +3,7 @@
 > Index généré (projection des frontmatters `tier:`). Régénéré au build.
 
 - `agent-team-dev` — tier: shared
+- `audit-dette` — tier: shared
 - `bonjour-team` — tier: shared
 - `bonne-nuit-team` — tier: shared
 - `correct-course` — tier: shared

@@ -14,6 +14,10 @@
 # Outil d'installation des skills partages (deploie skills/* vers ~/.claude/skills/).
 # Contenu .sh scanne par le denylist comme tout fichier textuel — revue humaine OK 2026-06-05.
 install-skills.sh
+
+# Scanner Python du skill audit-dette (tier shared). Contenu .py scanne par le
+# denylist comme tout fichier textuel — revue humaine OK 2026-06-09.
+skills/audit-dette/scan.py
 #
 # Exemples futurs (decommenter avec revue humaine explicite + revue du binaire) :
 # skills/*/assets/*.png
