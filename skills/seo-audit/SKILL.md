@@ -1,7 +1,7 @@
 ---
 tier: shared
 name: seo-audit
-description: "Audit SEO technique d'un site Next.js — Lighthouse, sitemap, metadata, structured data, Core Web Vitals. Use: SEO, audit SEO, performance web, sitemap, metadata, lighthouse, core web vitals."
+description: "Audit SEO + GEO technique d'un site Next.js — Lighthouse, sitemap, metadata, structured data, Core Web Vitals, visibilite dans les reponses IA (GEO). Use: SEO, GEO, audit SEO, visibilite IA, AI search, performance web, sitemap, metadata, lighthouse, core web vitals."
 allowed-tools: Bash, Read, Glob, Grep, Write, Edit
 ---
 
@@ -16,7 +16,7 @@ command -v npx >/dev/null 2>&1 || echo "[skip-anomalie] npx absent — installer
 
 ## Objectif
 
-Auditer un projet Next.js pour identifier les problemes SEO techniques et proposer des corrections. Couvre : metadata, sitemap, robots.txt, Core Web Vitals, structured data, images, liens.
+Auditer un projet Next.js pour identifier les problemes SEO techniques et proposer des corrections. Couvre : metadata, sitemap, robots.txt, Core Web Vitals, structured data, images, liens, et la couche **GEO** (Generative Engine Optimization — etre cite par ChatGPT/Claude/Perplexity/AI Overviews quand un prospect pose une question).
 
 ## Procedure
 
@@ -137,7 +137,49 @@ if [ -n "$SITE_URL" ]; then
 fi
 ```
 
-### Etape 7 — Rapport
+### Etape 7 — Couche GEO (visibilite dans les reponses IA)
+
+GEO complete le SEO classique : les moteurs IA citent 2 a 7 sources par reponse, et le recouvrement avec le top 10 Google est tombe sous 20 % (etude Brandlight 2026). Pour un artisan/TPE, etre LA reponse citee vaut mieux qu'un rang 4 Google.
+
+#### 7a — Acces crawlers IA (prerequis absolu)
+
+```bash
+echo "--- GEO : acces crawlers IA ---"
+ROBOTS="$PROJECT_DIR/public/robots.txt"
+if [ -f "$ROBOTS" ]; then
+  for bot in GPTBot ClaudeBot Claude-SearchBot OAI-SearchBot PerplexityBot Google-Extended; do
+    grep -qi "$bot" "$ROBOTS" && echo "ATTENTION: $bot mentionne dans robots.txt — verifier qu'il n'est PAS en Disallow"
+  done
+  echo "robots.txt present — relire les $(grep -ci "Disallow" "$ROBOTS") regles Disallow"
+else
+  echo "INFO: robots.txt absent du repo (genere au build par next-sitemap — verifier la version deployee)"
+fi
+```
+
+Verification manuelle obligatoire (hors code, a reporter dans le rapport) :
+- [ ] Site derriere Cloudflare : « Block AI Scrapers & Crawlers » est **OFF** (bloque en amont du serveur, invisible dans robots.txt — gotcha sites Frigg/web-factory derriere CDN)
+- [ ] WAF / rate-limiting : les user-agents IA ne recoivent ni 403 ni JS challenge (un challenge = site invisible pour les moteurs IA)
+
+#### 7b — Contenu citable (leviers prouves, etude Princeton GEO)
+
+```bash
+echo "--- GEO : structure citable ---"
+grep -rn "FAQPage" "$PROJECT_DIR/src/" 2>/dev/null | head -5  # vide = pas de schema FAQ
+grep -rn "LocalBusiness" "$PROJECT_DIR/src/" 2>/dev/null | head -5
+```
+
+Checklist contenu, par page metier importante (relecture manuelle) :
+- [ ] Chaque section repond a UNE question qu'un prospect poserait (titre H2/H3 = la question)
+- [ ] Reponse directe dans les 2 premieres phrases de la section (les LLM extraient des passages, pas des pages)
+- [ ] Statistiques chiffrees ET sourcees + citations d'expert nommees (leviers n°1 et n°2 de l'etude Princeton)
+- [ ] FAQ avec les vraies questions clients + JSON-LD `FAQPage`
+- [ ] Entites explicites en texte : nom, ville, metier, zone d'intervention (pas seulement dans les images/logo)
+
+#### 7c — llms.txt : NON prioritaire (etat verifie 06/2026)
+
+~0,1 % du trafic crawlers IA touche `/llms.txt` ; Google ne le supporte pas et ne le prevoit pas ; aucun engagement Anthropic/OpenAI/Perplexity. **Ne PAS le vendre comme levier GEO client.** Usage legitime restant : B2A (docs techniques consommees par des IDE/agents). A reevaluer si un moteur majeur s'engage officiellement.
+
+### Etape 8 — Rapport
 
 Generer un rapport structure :
 
@@ -165,6 +207,12 @@ Generer un rapport structure :
 - [ ] Images optimisees (next/image, WebP, alt)
 - [ ] Pas de liens casses
 - [ ] HTTPS + redirects 301
+
+### Checklist GEO
+- [ ] Crawlers IA non bloques (robots.txt + Cloudflare/WAF verifies)
+- [ ] Pages metier structurees question -> reponse (reponse dans les 2 premieres phrases)
+- [ ] Stats sourcees + FAQ reelle + JSON-LD FAQPage/LocalBusiness
+- [ ] Entites (nom/ville/metier/zone) presentes en texte
 ```
 
 ## Stack SEO recommandee
@@ -181,6 +229,15 @@ Generer un rapport structure :
 - **SE Ranking** (~$44/mo) : keyword research, site audits, rank tracking, competitor analysis
 - **Ahrefs** ($129/mo) : backlinks leader, Content Explorer
 - **Surfer SEO** ($99/mo) : content score, NLP terms, optimisation redactionnelle
+
+**GEO — gratuit, inclus dans tout site web-factory (cf Etape 7)**
+- robots.txt permissif bots IA + verification Cloudflare/WAF
+- JSON-LD FAQPage/LocalBusiness + contenu structure question -> reponse
+
+**GEO monitoring — a activer au 1er client payant, pas avant**
+- **geo-aeo-tracker** (open-source, dashboard local, 6 modeles IA) : depend de l'API Bright Data (payante a l'usage) — cout reel a chiffrer avant adoption
+- **SerpBear** (open-source) : rank tracking Google CLASSIQUE, pas du GEO — complement gratuit possible
+- SaaS « Share of Model » (Profound, Otterly...) : seulement si volume multi-clients
 
 ## Regles
 
