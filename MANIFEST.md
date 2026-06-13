@@ -7,6 +7,7 @@
 - `bonjour-team` — tier: shared
 - `bonne-nuit-team` — tier: shared
 - `correct-course` — tier: shared
+- `diagnose` — tier: shared
 - `distill` — tier: shared
 - `retrospective` — tier: shared
 - `review-adversarial` — tier: shared
