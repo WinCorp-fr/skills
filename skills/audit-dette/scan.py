@@ -106,8 +106,14 @@ def is_legit_debug_path(file_path: str) -> bool:
         return True
     if "/worker/" in norm or norm.startswith("worker/"):
         return True
-    # Outils CLI (package *-cli ou fichier cli.*) : console.log = output principal
-    if "-cli/" in norm or "/cli." in norm or norm.startswith("cli."):
+    # Seeds Prisma (prisma/seed.ts) : batch one-off, console.log = output legit
+    if "/prisma/" in norm or norm.startswith("prisma/"):
+        return True
+    # Scripts build/setup/post/emit (.mjs/.cjs hors src/) : tooling, jamais applicatif
+    if norm.endswith((".mjs", ".cjs")) and "/src/" not in norm:
+        return True
+    # Outils CLI (package *-cli, fichier *-cli.* ou cli.*) : console.log = output principal
+    if "-cli/" in norm or "-cli." in norm or "/cli." in norm or norm.startswith("cli."):
         return True
     # Throwaway / expérimentations ponctuelles (chantiers/)
     if "/chantiers/" in norm or norm.startswith("chantiers/"):
