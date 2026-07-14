@@ -27,6 +27,28 @@ Prérequis : `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` dans `~/.claude/settings.j
 - Tâches métier d'un domaine client (comptabilité, fiscalité, juridique…) — utiliser les skills/subagents dédiés
 - Tâches purement exploratoires (utiliser Agent Explore)
 
+## Critère de scission — à vérifier AVANT de composer l'équipe
+
+Ne scinder le travail en plusieurs teammates QUE si au moins un critère est vrai :
+
+- **Outils/permissions différents** (ex : l'un écrit le code, l'autre est en lecture seule pour la review)
+- **Modèle différent** (ex : Sonnet build vs Opus review)
+- **Garde-fous différents** (ex : producteur vs challenger à mandat adverse)
+
+Sinon : UN teammate qui boucle. Une mécanique séquentielle (« chercher → extraire → résumer »)
+= 1 teammate, jamais 3 — scinder par étape mécanique est de la sur-ingénierie, pas de la rigueur.
+
+## Règle 80/20 — la spec de la tâche prime sur le persona
+
+80 % de l'effort dans la description de la tâche et sa sortie attendue, 20 % dans le rôle.
+Un persona affûté ne rattrape jamais un mandat flou. Chaque teammate spawné reçoit OBLIGATOIREMENT :
+
+- **1 tâche = 1 objectif** — jamais « analyse ET corrige ET documente » dans un même mandat
+- **Sortie attendue explicite** : format (fichier, diff, liste), structure (sections attendues),
+  marqueurs de qualité (path:line, preuves, tests référencés)
+
+Les blocs « Sortie attendue par teammate » des templates ci-dessous sont à adapter, jamais à supprimer.
+
 ---
 
 ## Template 1 — Production + Challengers (standard)
@@ -52,6 +74,14 @@ Crée une agent team pour {description de la tâche}.
 - Un teammate "reviewer" qui challenge les choix d'architecture
   et propose des alternatives si pertinent.
 
+Sortie attendue par teammate (1 tâche = 1 objectif) :
+- architecte : ARCHITECTURE.md avec sections Interfaces / Data flow / Arbitrages
+  (2-3 options par arbitrage, parti pris tranché)
+- implementeur : code + liste des fichiers modifiés en path:line
+- testeur : tests nommés d'après la règle vérifiée, rouges avant le code, verts après
+- bug-hunter : findings numérotés — fichier:ligne, symptôme, preuve reproductible
+- reviewer : verdict par choix d'archi (VALIDE / CONTESTE + alternative argumentée)
+
 Règles :
 - Les challengers envoient leur feedback directement aux producteurs
 - Les producteurs corrigent et les challengers re-vérifient
@@ -75,12 +105,16 @@ Crée une agent team pour investiguer {description du bug}.
 - Un teammate "data" qui cherche la cause côté Supabase/PostgreSQL
   (RLS policies, migrations, data integrity)
 
+Sortie attendue par investigateur (1 tâche = 1 objectif) :
+- hypothèse + verdict CONFIRMÉE / RÉFUTÉE + preuves sourcées
+  (logs, requête, path:line) — jamais d'interprétation sans fait
+
 Règles adversariales :
 - Chaque investigateur doit non seulement prouver sa théorie mais
   CONTESTER celles des autres avec des arguments factuels
 - Quand un consensus émerge, un investigateur implémente le fix
   et les autres vérifient que ça résout effectivement le bug
-- Produire un post-mortem à la fin : cause racine + fix + leçons
+- Produire un post-mortem à la fin : cause racine + fix + leçons (1 fichier .md)
 ```
 
 ## Template 3 — Refactoring cross-repo
@@ -99,6 +133,11 @@ Crée une agent team pour refactorer {description}.
   et vérifie le build (vitest + next build)
 - Un teammate "integration" qui vérifie que tout fonctionne ensemble
   (tests end-to-end, pas de régression)
+
+Sortie attendue par teammate (1 tâche = 1 objectif) :
+- common / api / web : diff + résultat des vérifications de son repo
+  (commande exacte + exit code), transmis au teammate integration
+- integration : rapport de non-régression listant les commandes rejouées et leur statut
 
 Ordre de dépendance : common → api → web → integration
 Le teammate integration ne commence que quand les 3 autres ont fini.
