@@ -1,9 +1,13 @@
+---
+tier: shared
+---
+
 # Convention d'écriture des skills WinCorp
 
 > Déplacé depuis `wincorp-workspace/.claude/rules/05-skill-writing.md` le 2026-08-11
 > (dégraissage vague 1, item R5a : 128 lignes chargées à CHAQUE session pour un usage
 > ~1×/mois — le préambule de session n'est pas gratuit). Contenu inchangé hors 2 fixes :
-> réf sandbox bmad morte supprimée (R5b), `project_root` variabilisé (R5c).
+> réf sandbox bmad morte supprimée (R5b), chemin racine variabilisé (R5c).
 > Source : patterns extraits de BMAD-METHOD v6 (2026-04-08), adaptés à l'écosystème Yggdrasil.
 > À appliquer pour toute **nouvelle** skill et lors du refactor des skills existantes.
 
@@ -57,7 +61,7 @@ Toute skill qui dépend du contexte projet charge ses variables explicitement :
 - `current_client` (si applicable)
 - `communication_language` = FR
 - `date` = système
-- `project_root` = résolu au runtime (`resolve-paths.sh` / `~/Documents/wincorp-workspace`) — JAMAIS de chemin machine en dur (fichier sync 2 PC)
+- `workspace_root` = résolu au runtime (`resolve-paths.sh`) — JAMAIS de chemin machine en dur (les skills tournent sur plusieurs PC)
 
 ### Paths
 - ...
