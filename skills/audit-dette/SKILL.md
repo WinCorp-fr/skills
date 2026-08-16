@@ -1,6 +1,6 @@
 ---
 name: audit-dette
-description: "Audit dette silencieuse — scan SKILL.md (pre-check, skips typés, drift), refs path:line mortes, dette-tracker.jsonl. Génère rapport actionnable. Use: audit dette, dette report, dette tracker, scan dette."
+description: "Audit dette silencieuse — scan SKILL.md (pre-check, skips typés, drift), refs path:line mortes, dette-tracker.jsonl, garde anti-drift des templates SDD (sync-spec-template). Génère rapport actionnable. Use: audit dette, dette report, dette tracker, scan dette."
 allowed-tools: Bash, Read, Write
 tier: shared
 shared_since: 2026-06-09
@@ -52,6 +52,23 @@ MODE="${1:---full}"
 python3 "$SCAN_PY" "$MODE"
 ```
 
+### Étape 1bis — Garde anti-drift des templates SDD
+
+Les copies de `wincorp-saga/SPEC-TEMPLATE.md` dans le parc re-driftent en silence quand le master évolue (constat 2026-08-15 : 2 générations de retard sur 10 copies). Check lecture seule :
+
+```bash
+WS_NAME="${AUDIT_DETTE_WORKSPACE_NAME:-wincorp-workspace}"
+SYNC_TPL="$HOME/Documents/$WS_NAME/wincorp-saga/scripts/sync-spec-template.sh"
+
+if [ ! -f "$SYNC_TPL" ]; then
+  echo "[skip-anomalie] sync-spec-template.sh absent (wincorp-saga non cloné ou script déplacé)"
+else
+  bash "$SYNC_TPL"
+fi
+```
+
+Reporter la sortie dans le récap de l'audit : chaque ligne `DRIFT` / `ABSENT` / `HORS-MANIFEST` est une dette actionnable (réparation en 1 commande : `--apply`, qui passe par PR — ruleset org). `RETARD-ASSUME` (forseti) est un état documenté (décision vault greffe-spec-kit 2026-08-15), pas une alerte.
+
 ### Étape 2 — Présenter le rapport
 
 Si `--full` : le scan génère `<workspace>/.claude/dette-reports/dette-report-YYYY-MM-DD.md`. Le présenter en lecture brève + invitation à drill-down.
@@ -74,6 +91,7 @@ Ne jamais auto-fixer sans validation utilisateur explicite (sauf trivial : ajout
 | `<workspace>/.claude/rules/*.md` + notes de mémoire | Refs `path:line` ou wikilinks pointant vers des fichiers absents |
 | `<workspace>/.claude/dette-tracker.jsonl` | TODO/FIXME/HACK/XXX non tracés |
 | code applicatif du workspace (`.ts/.js/.py`) | Marqueurs debug oubliés (`console.log`, `debugger`, `pdb.set_trace`), hors chemins CLI/scripts/workers/tests |
+| copies de `SPEC-TEMPLATE.md` du parc | Drift d'empreinte vs master saga (étape 1bis, garde `wincorp-saga/scripts/sync-spec-template.sh`) |
 
 ## Format du rapport
 
