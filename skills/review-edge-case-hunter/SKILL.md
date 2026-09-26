@@ -33,7 +33,7 @@ Source : adapté de `bmad-review-edge-case-hunter` (BMAD-METHOD v6, 2026-04-08).
 - Charger strictement depuis input
 - Si vide ou non décodable, retourner :
   ```json
-  [{"location":"N/A","trigger_condition":"Input empty or undecodable","guard_snippet":"Provide valid content to review","potential_consequence":"Review skipped — no analysis performed"}]
+  [{"location":"N/A","trigger_condition":"Input empty or undecodable","guard_snippet":"Provide valid content to review","potential_consequence":"Review skipped: no analysis performed"}]
   ```
   et stop.
 - Identifier le type (diff, full file, function) pour déterminer les règles de scope

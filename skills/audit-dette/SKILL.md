@@ -77,9 +77,9 @@ Si `--summary` : afficher les lignes de stats (TODO non tracés, drift skills, f
 
 ### Étape 3 — Proposer 3 actions
 
-1. **Sprint dette ciblé** — si > 30 entrées non tracées OU dette > 90 jours → chantier dédié de cleanup.
-2. **Fix immédiat** — si dette critique (drift skills, ref path:line morte sur règle active) → fix dans la session courante.
-3. **Tracer + ignorer** — si dette acceptable → ajouter une ref datée au TODO existant pour le tracer.
+1. **Sprint dette ciblé** : si > 30 entrées non tracées OU dette > 90 jours → chantier dédié de cleanup.
+2. **Fix immédiat** : si dette critique (drift skills, ref path:line morte sur règle active) → fix dans la session courante.
+3. **Tracer + ignorer** : si dette acceptable → ajouter une ref datée au TODO existant pour le tracer.
 
 Ne jamais auto-fixer sans validation utilisateur explicite (sauf trivial : ajout de ref date sur un TODO).
 

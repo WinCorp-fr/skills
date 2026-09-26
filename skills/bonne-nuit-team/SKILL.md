@@ -141,4 +141,4 @@ fi
 
 ### Étape 4 — Checklist de sortie
 
-Lister chaque repo modifié avec son statut : tests `OK / ROUGE / skip`, commit `OK / —`, push `OK / —`. Signaler explicitement tout repo laissé non commité (travail en cours volontaire). Aucun statut omis.
+Lister chaque repo modifié avec son statut : tests `OK / ROUGE / skip`, commit `OK / non fait`, push `OK / non fait`. Signaler explicitement tout repo laissé non commité (travail en cours volontaire). Aucun statut omis.

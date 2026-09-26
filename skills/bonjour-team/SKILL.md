@@ -138,4 +138,4 @@ Afficher en clair :
 - Nombre de repos à jour vs avec modifs locales (à traiter via `/bonne-nuit-team`) vs en échec de pull.
 - Rappel : avant de coder sur un repo, lire son `README.md` + `.claude/CLAUDE.md` (chaque repo documente son propre démarrage : Python, Next.js, Vite…).
 - Rappel : « Fait » = vérifié (tests verts), pas « ça devrait marcher ».
-- **Rappel auto-sync** : si tu as un profil perso, ta mémoire vient d'être restaurée — pense à lancer **`/bonne-nuit-team` en fin de session** pour la sauvegarder (sinon les notes du jour ne sont pas poussées). Runbook : `wincorp-skills/EXPLOITATION.md`.
+- **Rappel auto-sync** : si tu as un profil perso, ta mémoire vient d'être restaurée. Pense à lancer **`/bonne-nuit-team` en fin de session** pour la sauvegarder (sinon les notes du jour ne sont pas poussées). Runbook : `wincorp-skills/EXPLOITATION.md`.

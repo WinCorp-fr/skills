@@ -39,7 +39,7 @@ Source : adapté de `bmad-distillator` (BMAD-METHOD v6, 2026-04-08).
 <step n="1" goal="Validate inputs">
   <action>Vérifier que source_documents existe(nt)</action>
   <check if="absent ou vide">
-    <output>HALT — aucune source à distiller</output>
+    <output>HALT : aucune source à distiller</output>
   </check>
   <action>Estimer tokens totaux des sources (heuristique : chars/4)</action>
 </step>

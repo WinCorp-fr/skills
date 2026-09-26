@@ -82,7 +82,7 @@ La discipline « pas de fix sans cause racine » est supposée acquise. Cette sk
 ## Template artefact (`.claude/diagnostics/<date>-<slug>.md`)
 
 ```markdown
-# Diagnostic — <symptôme court> (<date>)
+# Diagnostic : <symptôme court> (<date>)
 
 > Repo : <repo> · Slug : <date>-<slug> · Sous-agents : <A/B/C> · Apparition : <date ou « à confirmer »>
 
@@ -90,10 +90,10 @@ La discipline « pas de fix sans cause racine » est supposée acquise. Cette sk
 <quoi exactement · conditions · fréquence · depuis quand>
 
 ## Correctifs déjà tentés (et pourquoi insuffisants)
-- <prior_attempt 1> — <pourquoi ça n'a pas tenu, à la lumière des faits>
+- <prior_attempt 1> : <pourquoi ça n'a pas tenu, à la lumière des faits>
 
 ## Maillons de la chaîne
-1. <maillon> — <statut : preuve trouvée / RAS / opaque> [Fx si fait associé]
+1. <maillon> (<statut : preuve trouvée / RAS / opaque>) [Fx si fait associé]
 2. ...
 
 ## Faits vs hypothèses
