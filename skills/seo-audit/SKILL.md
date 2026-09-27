@@ -157,7 +157,7 @@ fi
 ```
 
 Verification manuelle obligatoire (hors code, a reporter dans le rapport) :
-- [ ] Site derriere Cloudflare : « Block AI Scrapers & Crawlers » est **OFF** (bloque en amont du serveur, invisible dans robots.txt — gotcha sites Frigg/web-factory derriere CDN)
+- [ ] Site derriere Cloudflare : « Block AI Scrapers & Crawlers » est **OFF** (bloque en amont du serveur, invisible dans robots.txt : gotcha sites Frigg/web-factory derriere CDN)
 - [ ] WAF / rate-limiting : les user-agents IA ne recoivent ni 403 ni JS challenge (un challenge = site invisible pour les moteurs IA)
 
 #### 7b — Contenu citable (leviers prouves, etude Princeton GEO)
@@ -184,7 +184,7 @@ Checklist contenu, par page metier importante (relecture manuelle) :
 Generer un rapport structure :
 
 ```
-## Rapport SEO — [projet]
+## Rapport SEO : [projet]
 
 ### Score global
 - Performance : X%
