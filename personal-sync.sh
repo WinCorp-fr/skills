@@ -80,8 +80,16 @@ shopt -s nullglob
 # Itère les projets workspace locaux (slug *-Documents-wincorp-*).
 for memdir in "$MEMROOT"/*-Documents-wincorp-*/memory; do   # LEAK-SCAN-IGNORE: glob mémoire projet local (générique)
   [ -d "$memdir" ] || continue
-  found=$((found+1))
   slug="$(basename "$(dirname "$memdir")")"
+  # Réplique de test sous un dossier caché (banc d'un outil : ~/.<outil>/.../home/Documents/wincorp-workspace) : son slug
+  # FINIT comme celui du vrai projet. Sans ce saut, sa mémoire est sauvegardée DANS le dossier miroir du vrai projet
+  # (une fiche plus récente y remplace la vraie) et le restore recopie la mémoire du vrai projet dans chaque réplique.
+  # Signature générique : un « -- » (dossier caché ou nom à caractères spéciaux) entre le préfixe de lecteur et
+  # « -Documents-wincorp- ». Constat 2026-09-21 : 34 répliques sur un poste. Limite connue : une réplique rangée sous un
+  # dossier ordinaire n'est pas reconnue (il faudrait ancrer sur le slug du domicile réel).
+  avant="${slug%%-Documents-wincorp-*}"; avant="${avant#[A-Za-z]--}"
+  case "$avant" in *--*) echo "  [skip-attendu] $slug : projet sous un dossier caché (réplique de test ?), ignoré"; continue ;; esac
+  found=$((found+1))
   canonical="${slug##*-Documents-}"
   # Défense path-traversal (MED-1) : un canonical avec / ou .. est rejeté (jamais en pratique, le
   # slug vient d'un glob sur dossiers réels — défense en profondeur conforme « robuste v1.0 »).
