@@ -15,7 +15,7 @@ La discipline « pas de fix sans cause racine » est supposée acquise. Cette sk
 ## CRITICAL RULES
 
 - MANDATORY : exécuter TOUTES les étapes DANS L'ORDRE EXACT (0 → 5).
-- **GEL TOTAL pendant le run** : aucun Edit, Write, ni commit tant que le plan de fix (étape 4) n'est pas présenté et validé. Le diagnostic n'écrit QUE son propre artefact.
+- **GEL TOTAL pendant le run** : aucun Edit, Write, ni commit tant que le plan de fix (étape 4) n'est pas présenté et son artefact de diagnostic (étape 5) écrit. Le diagnostic n'écrit QUE son propre artefact.
 - On ne corrige JAMAIS sur une hypothèse — seulement sur un **fait sourcé** (étape 3). Un symptôme (« 1 fois sur 5 », « parfois ») est une description, pas un diagnostic.
 - Le plan de fix est **groupé** (tous les maillons fautifs traités ensemble), jamais symptôme-par-symptôme.
 - L'artefact (étape 5) est obligatoire même si la cause est trouvée vite — il documente ET débloque le garde-fou.
@@ -67,8 +67,10 @@ La discipline « pas de fix sans cause racine » est supposée acquise. Cette sk
   <action>À partir des seuls faits : décrire UN plan qui traite TOUS les maillons fautifs ensemble (pas un patch par symptôme).</action>
   <action>Inclure systématiquement : (a) le test de régression à écrire AVANT le fix (rouge d'abord, prouve la cause) ; (b) le revert des prior_attempts qui traitaient un faux symptôme (sinon = dette qui masquera le prochain incident) ; (c) les effets de bord attendus sur les autres maillons.</action>
   <action>Si le fix dépend d'une RÈGLE MÉTIER ou réglementaire non établie (valeur par défaut d'un cas limite, libellé normé, traitement d'une exonération, règle d'arrondi…), elle devient un POINT DE VALIDATION BLOQUANT — jamais une décision silencieuse de Claude. Présenter les options, demander la règle, ne pas deviner.</action>
-  <action>Présenter le plan en 5-10 lignes max et ATTENDRE validation explicite avant tout Edit/commit (fin du gel).</action>
-  <ask>Valider le plan de fix groupé ? [y/n/discuter]</ask>
+  <action>Présenter le plan en 5-10 lignes max, puis passer à l'étape 5 : l'artefact de diagnostic écrit remplace l'accord de Tan avant tout Edit/commit (fin du gel, plan amont du 24/10/2026). Tan lit le diagnostic après coup ; le fix reste réversible par git.</action>
+  <check if="le plan contient un POINT DE VALIDATION BLOQUANT (règle métier ou réglementaire non établie)">
+    <ask>Quelle règle appliquer ? (options présentées ci-dessus)</ask>
+  </check>
 </step>
 
 <step n="5" goal="Écrire l'artefact de diagnostic">
@@ -118,7 +120,7 @@ La discipline « pas de fix sans cause racine » est supposée acquise. Cette sk
 - [ ] Preuves collectées par sous-agents LECTURE SEULE (aucun Edit pendant le run)
 - [ ] Tableau faits sourcés vs hypothèses rempli, chaque fait porte sa preuve
 - [ ] Cause racine = un fait en amont qui explique aussi l'échec des fixes précédents
-- [ ] Plan de fix GROUPÉ présenté et validé AVANT tout commit (test de régression inclus)
+- [ ] Plan de fix GROUPÉ présenté et artefact de diagnostic écrit AVANT tout commit (test de régression inclus)
 - [ ] Artefact écrit dans `.claude/diagnostics/<date>-<slug>.md`
 - [ ] Aucun code modifié par cette skill (le fix se fait APRÈS, hors skill)
 
