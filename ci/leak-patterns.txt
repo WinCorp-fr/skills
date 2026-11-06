@@ -14,10 +14,10 @@ siren-separe|||\b[0-9]{3}[ .][0-9]{3}[ .][0-9]{3}\b
 siret-14-chiffres|||\b[0-9]{14}\b
 
 # --- Chemins machine / perso ---
-# Separateur / ou \ (simple ou double, forme JSON), casse du nom de compte tolere (Windows ignore la casse).
-chemin-user-perso|||[Uu]sers[/\\]+([Tt]anfeuille|[Tt]anph)\b
+# Separateur / ou \ (simple ou double, forme JSON), casse indifferente lettre par lettre (Windows ignore la casse).
+chemin-user-perso|||[Uu][Ss][Ee][Rr][Ss][/\\]+([Tt][Aa][Nn][Ff][Ee][Uu][Ii][Ll][Ll][Ee]|[Tt][Aa][Nn][Pp][Hh])\b
 # Variante "slug" Claude Code (séparateur tiret) : C--Users-tanph-Documents-... (HIGH-2, 2026-06-09).
-chemin-user-perso-slug|||[Uu]sers-(Tanfeuille|tanph)\b
+chemin-user-perso-slug|||[Uu][Ss][Ee][Rr][Ss]-([Tt][Aa][Nn][Ff][Ee][Uu][Ii][Ll][Ll][Ee]|[Tt][Aa][Nn][Pp][Hh])\b
 claude-projects|||\.claude/projects
 claude-memory|||claude-memory
 onedrive|||OneDrive
@@ -48,4 +48,4 @@ email-perso|||tanfeuille@gmail
 # - l'adresse WinCorp doit rester permise : elle figure dans les Co-authored-by des messages de
 #   commit, scannes avec ces memes motifs a chaque push sur main (cf .github/workflows/leak-scan.yml).
 # Seuls des caracteres de domaine suivent le @ : le prefixe seul, cite dans un texte, n'est pas une adresse.
-email-hors-wincorp|||[Tt][Pp]\.[Hh][Uu][Yy][Nn][Hh]@([A-Za-vx-z0-9]|w[A-Za-hj-z0-9.-]|wi[A-Za-mo-z0-9.-]|win[A-Za-bd-z0-9.-]|winc[A-Za-np-z0-9.-]|winco[A-Za-qs-z0-9.-]|wincor[A-Za-oq-z0-9.-])
+email-hors-wincorp|||[Tt][Pp]\.[Hh][Uu][Yy][Nn][Hh]@([A-VX-Za-vx-z0-9]|[Ww][A-HJ-Za-hj-z0-9.-]|[Ww][Ii][A-MO-Za-mo-z0-9.-]|[Ww][Ii][Nn][ABD-Zabd-z0-9.-]|[Ww][Ii][Nn][Cc][A-NP-Za-np-z0-9.-]|[Ww][Ii][Nn][Cc][Oo][A-QS-Za-qs-z0-9.-]|[Ww][Ii][Nn][Cc][Oo][Rr][A-OQ-Za-oq-z0-9.-])

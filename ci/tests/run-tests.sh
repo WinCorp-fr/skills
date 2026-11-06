@@ -247,6 +247,63 @@ tier: shared
 Le prefixe tp.huynh@w` coupe apres une lettre.
 EOF
 
+# Casse indifferente, lettre par lettre : chemin perso et exception WinCorp.
+run_case path-majuscules "skills/cc1/SKILL.md" 2 <<'EOF'
+---
+name: cc1
+tier: shared
+---
+Chemin C:\USERS\TANPH\Documents\x en dur.
+EOF
+
+run_case path-casse-mixte "skills/cc2/SKILL.md" 2 <<'EOF'
+---
+name: cc2
+tier: shared
+---
+Chemin C:\Users\tAnPh\Documents\x en dur.
+EOF
+
+run_case slug-casse "skills/cc3/SKILL.md" 2 <<'EOF'
+---
+name: cc3
+tier: shared
+---
+Slug C--USERS-tanfeuille-Documents en dur.
+EOF
+
+run_case email-wincorp-w-maj "skills/cc4/SKILL.md" 0 <<'EOF'
+---
+name: cc4
+tier: shared
+---
+Contact tp.huynh@Wincorp.fr autorise.
+EOF
+
+run_case email-wincorp-mixte "skills/cc5/SKILL.md" 0 <<'EOF'
+---
+name: cc5
+tier: shared
+---
+Contact tp.huynh@winCorp.fr autorise.
+EOF
+
+run_case email-wincorp-maj "skills/cc6/SKILL.md" 0 <<'EOF'
+---
+name: cc6
+tier: shared
+---
+Contact TP.HUYNH@WINCORP.FR autorise.
+EOF
+
+run_case email-w-maj-tiers "skills/cc7/SKILL.md" 2 <<'EOF'
+---
+name: cc7
+tier: shared
+---
+Contact tp.huynh@Wanadoo.invalid en dur.
+EOF
+
 run_case feedback-ref "skills/fb/SKILL.md" 2 <<'EOF'
 ---
 name: fb
