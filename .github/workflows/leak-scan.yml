@@ -23,6 +23,9 @@ jobs:
       - name: Self-check du scanner (corpus synthetique)
         run: bash ci/leak-scan.sh --self-check
 
+      - name: Banc d'essai d'install-skills (faux poste)
+        run: bash ci/tests/test-install-skills.sh
+
       - name: Scan anti-fuite de l'arbre entier
         run: bash ci/leak-scan.sh --tree .
 
@@ -47,3 +50,19 @@ jobs:
             fi
           done < ci/leak-patterns.txt
           exit $rc
+
+  # Les developpeurs externes peuvent etre sous macOS : bash 3.2 et find BSD, absents d'ubuntu-latest.
+  install-skills-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Banc d'essai d'install-skills avec le bash systeme
+        run: |
+          mkdir -p "$RUNNER_TEMP/shim"
+          ln -s /bin/bash "$RUNNER_TEMP/shim/bash"
+          export PATH="$RUNNER_TEMP/shim:$PATH"
+          bash --version | head -1
+          bash ci/tests/test-install-skills.sh

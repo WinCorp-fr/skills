@@ -62,7 +62,7 @@ fi
 ### Étape 1bis — Skills partagés à jour + mémoire perso restaurée (sync multi-dev)
 
 Deux compléments, sans effet s'ils ne sont pas configurés (deny-by-default) :
-- **Skills partagés** : si `wincorp-skills` est propre, le redéployer pour garder tes skills d'équipe à jour (`install-skills.sh`, idempotent — comble le trou « pull du repo sans redéploiement »).
+- **Skills partagés** : si `wincorp-skills` est propre, le redéployer pour garder tes skills d'équipe à jour (`install-skills.sh`, idempotent — comble le trou « pull du repo sans redéploiement »). Seules les versions déjà publiées sont remplacées : une édition ou un skill perso du même nom reste intact, avec une ligne `[gardé]` à lire.
 - **Mémoire perso** : restaurer ta mémoire Claude Code depuis TON miroir privé, si `DEV_PERSONAL_REPO` est déclaré dans `~/.claude/profile.env`. Sans profil → skip propre (le mainteneur a son propre `/bonjour`).
 
 ```bash
@@ -76,7 +76,7 @@ if [ ! -d "$SKREPO/.git" ]; then
 elif [ -n "$(git -C "$SKREPO" status --short 2>/dev/null)" ]; then
   echo "  [skip-attendu] skills partagés : modifs locales en cours (édition) — pas de redéploiement auto"
 elif [ -f "$SKREPO/install-skills.sh" ]; then
-  bash "$SKREPO/install-skills.sh" 2>&1 | tail -3
+  bash "$SKREPO/install-skills.sh" 2>&1 || echo "  ✗ install-skills.sh en échec : lire les lignes ✗ ci-dessus"
 fi
 # (b) Restaurer la mémoire perso depuis le miroir du dev (skip propre si pas de profil).
 if [ -f "$HOME/.claude/skills/personal-sync.sh" ]; then
