@@ -222,6 +222,31 @@ tier: shared
 Co-authored-by: Tan Phi HUYNH <tp.huynh@wincorp.fr>
 EOF
 
+# Le prefixe seul n'est pas une adresse : ponctuation ou espace apres @ ne bloque pas.
+run_case email-prefixe-cite "skills/em6/SKILL.md" 0 <<'EOF'
+---
+name: em6
+tier: shared
+---
+Le motif vise le prefixe `tp.huynh@` sans domaine.
+EOF
+
+run_case email-prefixe-espace "skills/em7/SKILL.md" 0 <<'EOF'
+---
+name: em7
+tier: shared
+---
+Le prefixe tp.huynh@ suivi d un espace.
+EOF
+
+run_case email-w-ponctuation "skills/em8/SKILL.md" 0 <<'EOF'
+---
+name: em8
+tier: shared
+---
+Le prefixe tp.huynh@w` coupe apres une lettre.
+EOF
+
 run_case feedback-ref "skills/fb/SKILL.md" 2 <<'EOF'
 ---
 name: fb

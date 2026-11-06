@@ -47,4 +47,5 @@ email-perso|||tanfeuille@gmail
 # - nommer le domaine employeur ici le publierait (regle : aucun nom de cabinet dans ce fichier) ;
 # - l'adresse WinCorp doit rester permise : elle figure dans les Co-authored-by des messages de
 #   commit, scannes avec ces memes motifs a chaque push sur main (cf .github/workflows/leak-scan.yml).
-email-hors-wincorp|||[Tt][Pp]\.[Hh][Uu][Yy][Nn][Hh]@([^w]|w[^i]|wi[^n]|win[^c]|winc[^o]|winco[^r]|wincor[^p])
+# Seuls des caracteres de domaine suivent le @ : le prefixe seul, cite dans un texte, n'est pas une adresse.
+email-hors-wincorp|||[Tt][Pp]\.[Hh][Uu][Yy][Nn][Hh]@([A-Za-vx-z0-9]|w[A-Za-hj-z0-9.-]|wi[A-Za-mo-z0-9.-]|win[A-Za-bd-z0-9.-]|winc[A-Za-np-z0-9.-]|winco[A-Za-qs-z0-9.-]|wincor[A-Za-oq-z0-9.-])
