@@ -14,7 +14,8 @@ siren-separe|||\b[0-9]{3}[ .][0-9]{3}[ .][0-9]{3}\b
 siret-14-chiffres|||\b[0-9]{14}\b
 
 # --- Chemins machine / perso ---
-chemin-user-perso|||[Uu]sers/(Tanfeuille|tanph)\b
+# Separateur / ou \ (simple ou double, forme JSON), casse du nom de compte tolere (Windows ignore la casse).
+chemin-user-perso|||[Uu]sers[/\\]+([Tt]anfeuille|[Tt]anph)\b
 # Variante "slug" Claude Code (séparateur tiret) : C--Users-tanph-Documents-... (HIGH-2, 2026-06-09).
 chemin-user-perso-slug|||[Uu]sers-(Tanfeuille|tanph)\b
 claude-projects|||\.claude/projects
@@ -42,3 +43,8 @@ tier-non-partage|||^tier:[[:space:]]*(client|personal)\b
 
 # --- Identite perso (commits shared = identite WinCorp, jamais perso) ---
 email-perso|||tanfeuille@gmail
+# Adresse de Tan sur TOUT domaine sauf wincorp*. Ecrit en complement pour deux raisons :
+# - nommer le domaine employeur ici le publierait (regle : aucun nom de cabinet dans ce fichier) ;
+# - l'adresse WinCorp doit rester permise : elle figure dans les Co-authored-by des messages de
+#   commit, scannes avec ces memes motifs a chaque push sur main (cf .github/workflows/leak-scan.yml).
+email-hors-wincorp|||[Tt][Pp]\.[Hh][Uu][Yy][Nn][Hh]@([^w]|w[^i]|wi[^n]|win[^c]|winc[^o]|winco[^r]|wincor[^p])

@@ -121,6 +121,107 @@ tier: shared
 Chemin perso /Users/Tanfeuille/Documents/x en dur.
 EOF
 
+# Chemin perso sous Windows : antislash simple, antislash double (JSON), casse du nom de compte.
+run_case path-win-compte1 "skills/pw1/SKILL.md" 2 <<'EOF'
+---
+name: pw1
+tier: shared
+---
+Chemin C:\Users\tanph\Documents\x en dur.
+EOF
+
+run_case path-win-compte2 "skills/pw2/SKILL.md" 2 <<'EOF'
+---
+name: pw2
+tier: shared
+---
+Chemin C:\Users\Tanfeuille\Documents\x en dur.
+EOF
+
+run_case path-win-json "skills/pw3/SKILL.md" 2 <<'EOF'
+---
+name: pw3
+tier: shared
+---
+{"path": "C:\Users\tanph\Documents\x"}
+EOF
+
+run_case path-casse-basse "skills/pw4/SKILL.md" 2 <<'EOF'
+---
+name: pw4
+tier: shared
+---
+Chemin /c/users/tanfeuille/Documents/x en dur.
+EOF
+
+run_case path-marqueur "skills/pw5/SKILL.md" 2 <<'EOF'
+---
+name: pw5
+tier: shared
+---
+Chemin C:\Users\tanph\x LEAK-SCAN-IGNORE -> motif dur, doit BLOQUER.
+EOF
+
+# Pas de faux positif : un autre compte, ou un nom qui commence pareil, reste permis.
+run_case path-autre-compte "skills/pw6/SKILL.md" 0 <<'EOF'
+---
+name: pw6
+tier: shared
+---
+Exemple generique C:\Users\alice\Documents\x et /home/alice/x.
+EOF
+
+run_case path-nom-proche "skills/pw7/SKILL.md" 0 <<'EOF'
+---
+name: pw7
+tier: shared
+---
+Exemple generique C:\Users\tanphi\Documents\x.
+EOF
+
+# Adresse professionnelle : tout domaine hors WinCorp bloque. Domaine FICTIF, jamais le vrai ici.
+run_case email-hors-wincorp "skills/em1/SKILL.md" 2 <<'EOF'
+---
+name: em1
+tier: shared
+---
+Contact tp.huynh@exemple.invalid en dur.
+EOF
+
+run_case email-casse "skills/em2/SKILL.md" 2 <<'EOF'
+---
+name: em2
+tier: shared
+---
+Contact TP.Huynh@exemple.invalid en dur.
+EOF
+
+run_case email-domaine-w "skills/em3/SKILL.md" 2 <<'EOF'
+---
+name: em3
+tier: shared
+---
+Contact tp.huynh@wanadoo.invalid en dur.
+EOF
+
+run_case email-marqueur "skills/em4/SKILL.md" 2 <<'EOF'
+---
+name: em4
+tier: shared
+---
+Contact tp.huynh@exemple.invalid LEAK-SCAN-IGNORE -> motif dur, doit BLOQUER.
+EOF
+
+# L'identite WinCorp reste permise : elle figure dans les Co-authored-by des messages de commit,
+# que la CI scanne avec les memes motifs a chaque push sur main.
+run_case email-wincorp-ok "skills/em5/SKILL.md" 0 <<'EOF'
+---
+name: em5
+tier: shared
+---
+Co-authored-by: Tan Phi HUYNH <tp.huynh@wincorp.fr>
+EOF
+
 run_case feedback-ref "skills/fb/SKILL.md" 2 <<'EOF'
 ---
 name: fb
