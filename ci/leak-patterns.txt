@@ -14,9 +14,10 @@ siren-separe|||\b[0-9]{3}[ .][0-9]{3}[ .][0-9]{3}\b
 siret-14-chiffres|||\b[0-9]{14}\b
 
 # --- Chemins machine / perso ---
-chemin-user-perso|||[Uu]sers/(Tanfeuille|tanph)\b
+# Separateur / ou \ (simple ou double, forme JSON), casse indifferente lettre par lettre (Windows ignore la casse).
+chemin-user-perso|||[Uu][Ss][Ee][Rr][Ss][/\\]+([Tt][Aa][Nn][Ff][Ee][Uu][Ii][Ll][Ll][Ee]|[Tt][Aa][Nn][Pp][Hh])\b
 # Variante "slug" Claude Code (séparateur tiret) : C--Users-tanph-Documents-... (HIGH-2, 2026-06-09).
-chemin-user-perso-slug|||[Uu]sers-(Tanfeuille|tanph)\b
+chemin-user-perso-slug|||[Uu][Ss][Ee][Rr][Ss]-([Tt][Aa][Nn][Ff][Ee][Uu][Ii][Ll][Ll][Ee]|[Tt][Aa][Nn][Pp][Hh])\b
 claude-projects|||\.claude/projects
 claude-memory|||claude-memory
 onedrive|||OneDrive
@@ -42,3 +43,9 @@ tier-non-partage|||^tier:[[:space:]]*(client|personal)\b
 
 # --- Identite perso (commits shared = identite WinCorp, jamais perso) ---
 email-perso|||tanfeuille@gmail
+# Adresse de Tan sur TOUT domaine sauf wincorp*. Ecrit en complement pour deux raisons :
+# - nommer le domaine employeur ici le publierait (regle : aucun nom de cabinet dans ce fichier) ;
+# - l'adresse WinCorp doit rester permise : elle figure dans les Co-authored-by des messages de
+#   commit, scannes avec ces memes motifs a chaque push sur main (cf .github/workflows/leak-scan.yml).
+# Seuls des caracteres de domaine suivent le @ : le prefixe seul, cite dans un texte, n'est pas une adresse.
+email-hors-wincorp|||[Tt][Pp]\.[Hh][Uu][Yy][Nn][Hh]@([A-VX-Za-vx-z0-9]|[Ww][A-HJ-Za-hj-z0-9.-]|[Ww][Ii][A-MO-Za-mo-z0-9.-]|[Ww][Ii][Nn][ABD-Zabd-z0-9.-]|[Ww][Ii][Nn][Cc][A-NP-Za-np-z0-9.-]|[Ww][Ii][Nn][Cc][Oo][A-QS-Za-qs-z0-9.-]|[Ww][Ii][Nn][Cc][Oo][Rr][A-OQ-Za-oq-z0-9.-])

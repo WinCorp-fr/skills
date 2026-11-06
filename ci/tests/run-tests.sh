@@ -121,6 +121,189 @@ tier: shared
 Chemin perso /Users/Tanfeuille/Documents/x en dur.
 EOF
 
+# Chemin perso sous Windows : antislash simple, antislash double (JSON), casse du nom de compte.
+run_case path-win-compte1 "skills/pw1/SKILL.md" 2 <<'EOF'
+---
+name: pw1
+tier: shared
+---
+Chemin C:\Users\tanph\Documents\x en dur.
+EOF
+
+run_case path-win-compte2 "skills/pw2/SKILL.md" 2 <<'EOF'
+---
+name: pw2
+tier: shared
+---
+Chemin C:\Users\Tanfeuille\Documents\x en dur.
+EOF
+
+run_case path-win-json "skills/pw3/SKILL.md" 2 <<'EOF'
+---
+name: pw3
+tier: shared
+---
+{"path": "C:\Users\tanph\Documents\x"}
+EOF
+
+run_case path-casse-basse "skills/pw4/SKILL.md" 2 <<'EOF'
+---
+name: pw4
+tier: shared
+---
+Chemin /c/users/tanfeuille/Documents/x en dur.
+EOF
+
+run_case path-marqueur "skills/pw5/SKILL.md" 2 <<'EOF'
+---
+name: pw5
+tier: shared
+---
+Chemin C:\Users\tanph\x LEAK-SCAN-IGNORE -> motif dur, doit BLOQUER.
+EOF
+
+# Pas de faux positif : un autre compte, ou un nom qui commence pareil, reste permis.
+run_case path-autre-compte "skills/pw6/SKILL.md" 0 <<'EOF'
+---
+name: pw6
+tier: shared
+---
+Exemple generique C:\Users\alice\Documents\x et /home/alice/x.
+EOF
+
+run_case path-nom-proche "skills/pw7/SKILL.md" 0 <<'EOF'
+---
+name: pw7
+tier: shared
+---
+Exemple generique C:\Users\tanphi\Documents\x.
+EOF
+
+# Adresse professionnelle : tout domaine hors WinCorp bloque. Domaine FICTIF, jamais le vrai ici.
+run_case email-hors-wincorp "skills/em1/SKILL.md" 2 <<'EOF'
+---
+name: em1
+tier: shared
+---
+Contact tp.huynh@exemple.invalid en dur.
+EOF
+
+run_case email-casse "skills/em2/SKILL.md" 2 <<'EOF'
+---
+name: em2
+tier: shared
+---
+Contact TP.Huynh@exemple.invalid en dur.
+EOF
+
+run_case email-domaine-w "skills/em3/SKILL.md" 2 <<'EOF'
+---
+name: em3
+tier: shared
+---
+Contact tp.huynh@wanadoo.invalid en dur.
+EOF
+
+run_case email-marqueur "skills/em4/SKILL.md" 2 <<'EOF'
+---
+name: em4
+tier: shared
+---
+Contact tp.huynh@exemple.invalid LEAK-SCAN-IGNORE -> motif dur, doit BLOQUER.
+EOF
+
+# L'identite WinCorp reste permise : elle figure dans les Co-authored-by des messages de commit,
+# que la CI scanne avec les memes motifs a chaque push sur main.
+run_case email-wincorp-ok "skills/em5/SKILL.md" 0 <<'EOF'
+---
+name: em5
+tier: shared
+---
+Co-authored-by: Tan Phi HUYNH <tp.huynh@wincorp.fr>
+EOF
+
+# Le prefixe seul n'est pas une adresse : ponctuation ou espace apres @ ne bloque pas.
+run_case email-prefixe-cite "skills/em6/SKILL.md" 0 <<'EOF'
+---
+name: em6
+tier: shared
+---
+Le motif vise le prefixe `tp.huynh@` sans domaine.
+EOF
+
+run_case email-prefixe-espace "skills/em7/SKILL.md" 0 <<'EOF'
+---
+name: em7
+tier: shared
+---
+Le prefixe tp.huynh@ suivi d un espace.
+EOF
+
+run_case email-w-ponctuation "skills/em8/SKILL.md" 0 <<'EOF'
+---
+name: em8
+tier: shared
+---
+Le prefixe tp.huynh@w` coupe apres une lettre.
+EOF
+
+# Casse indifferente, lettre par lettre : chemin perso et exception WinCorp.
+run_case path-majuscules "skills/cc1/SKILL.md" 2 <<'EOF'
+---
+name: cc1
+tier: shared
+---
+Chemin C:\USERS\TANPH\Documents\x en dur.
+EOF
+
+run_case path-casse-mixte "skills/cc2/SKILL.md" 2 <<'EOF'
+---
+name: cc2
+tier: shared
+---
+Chemin C:\Users\tAnPh\Documents\x en dur.
+EOF
+
+run_case slug-casse "skills/cc3/SKILL.md" 2 <<'EOF'
+---
+name: cc3
+tier: shared
+---
+Slug C--USERS-tanfeuille-Documents en dur.
+EOF
+
+run_case email-wincorp-w-maj "skills/cc4/SKILL.md" 0 <<'EOF'
+---
+name: cc4
+tier: shared
+---
+Contact tp.huynh@Wincorp.fr autorise.
+EOF
+
+run_case email-wincorp-mixte "skills/cc5/SKILL.md" 0 <<'EOF'
+---
+name: cc5
+tier: shared
+---
+Contact tp.huynh@winCorp.fr autorise.
+EOF
+
+run_case email-wincorp-maj "skills/cc6/SKILL.md" 0 <<'EOF'
+---
+name: cc6
+tier: shared
+---
+Contact TP.HUYNH@WINCORP.FR autorise.
+EOF
+
+run_case email-w-maj-tiers "skills/cc7/SKILL.md" 2 <<'EOF'
+---
+name: cc7
+tier: shared
+---
+Contact tp.huynh@Wanadoo.invalid en dur.
+EOF
+
 run_case feedback-ref "skills/fb/SKILL.md" 2 <<'EOF'
 ---
 name: fb
