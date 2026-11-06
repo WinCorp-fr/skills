@@ -30,7 +30,7 @@ Ensuite, `/bonjour-team` (début de session) et `/bonne-nuit-team` (fin) gèrent
 
 - `skills/<nom>/` — skills partagés (tier shared uniquement).
 - `knowledge/` — base de savoir d'équipe (conventions, feedbacks dev assainis). *(Phase B)*
-- `install-skills.sh` — déploie `skills/*` + les helpers vers `~/.claude/skills/`.
+- `install-skills.sh` — déploie `skills/*` + les helpers vers `~/.claude/skills/`, sans toucher à une édition non publiée ni à un skill perso du même nom (lignes `[gardé]`, cf `EXPLOITATION.md`). Banc d'essai : `bash ci/tests/test-install-skills.sh`.
 - `bootstrap-personal-mirror.sh` — crée le dépôt miroir **privé personnel** d'un dev (mémoire/config).
 - `personal-sync.sh` — sauvegarde/restaure la mémoire d'un dev vers/depuis son miroir (`--backup`/`--restore`).
 - `profile.env.template` — modèle de profil d'identité dev (à copier en `~/.claude/profile.env`).
