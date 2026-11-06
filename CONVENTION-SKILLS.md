@@ -57,7 +57,7 @@ Toute skill qui dépend du contexte projet charge ses variables explicitement :
 ## INITIALIZATION
 
 ### Configuration Loading
-- `current_domain` (SPINEX | WinCorp | TRIMAT)
+- `current_domain` (domaine métier de la session, lu dans la configuration du projet)
 - `current_client` (si applicable)
 - `communication_language` = FR
 - `date` = système
