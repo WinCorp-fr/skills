@@ -57,6 +57,20 @@ OTHER="$SANDBOX/other-dev-mirror"; mkdir -p "$OTHER/claude-memory"
 bash "$PS" --backup --no-net --remote testdev/test-mirror --dir "$MIR" --memdir "$SANDBOX/projects" >/dev/null 2>&1
 [ -z "$(find "$OTHER/claude-memory" -type f 2>/dev/null)" ] && ok "frontière : aucun écrit dans un autre miroir" || ko "FRONTIÈRE : a écrit dans un autre miroir"
 
+# 5bis. RÉPLIQUE DE TEST sous un dossier caché (constat 2026-09-21 : le banc d'un outil tient de faux domiciles sous
+# ~/.<outil>/.../home/Documents/wincorp-workspace ; leur slug FINIT comme celui du vrai projet). Sa mémoire ne doit
+# jamais tomber dans le dossier miroir du vrai projet, et le restore ne doit jamais y recopier la mémoire du vrai.
+REPLIQUE="$SANDBOX/projects/C--Users-test--outil-banc-1-home-Documents-wincorp-workspace/memory"
+mkdir -p "$REPLIQUE"
+printf 'FICHE DU BANC\n' > "$REPLIQUE/a.md"
+touch -d '+1 hour' "$REPLIQUE/a.md" 2>/dev/null || touch "$REPLIQUE/a.md"   # plus récente que le miroir : sans le saut, elle l'écraserait
+out5b="$(bash "$PS" --backup --no-net --remote testdev/test-mirror --dir "$MIR" --memdir "$SANDBOX/projects" 2>&1)"
+grep -q 'FICHE DU BANC' "$MIR/claude-memory/wincorp-workspace/a.md" 2>/dev/null && ko "RÉPLIQUE : sa fiche a écrasé celle du vrai projet dans le miroir" || ok "réplique : backup ne touche pas le miroir du vrai projet"
+echo "$out5b" | grep -q "skip-attendu.*C--Users-test--outil-banc-1" && ok "réplique : saut typé [skip-attendu] annoncé" || ko "réplique : aucun [skip-attendu] annoncé"
+bash "$PS" --restore --no-net --remote testdev/test-mirror --dir "$MIR" --memdir "$SANDBOX/projects" >/dev/null 2>&1
+[ ! -f "$REPLIQUE/b.md" ] && ok "réplique : restore n'y recopie pas la mémoire du vrai projet" || ko "RÉPLIQUE : restore y a recopié la mémoire du vrai projet"
+[ -f "$PROJ/b.md" ] && ok "réplique : le vrai projet reste servi" || ko "réplique : le vrai projet n'est plus servi"
+
 # 6. PUBLIC-SAFE : aucune ref perso/client dans le script
 if grep -riE "tanfeuille|spinex|trimat|fulll|feedback_[a-z]|tanph" "$PS" >/dev/null 2>&1; then
   ko "FUITE : ref perso/client dans personal-sync.sh"
