@@ -14,6 +14,7 @@ Modes :
 Sources scannees (resolues au runtime depuis l'environnement du dev courant) :
   ~/.claude/skills/*/SKILL.md             : pre-check absents, drift hash,
                                             frontmatter mismatch, content anomaly
+  ~/.claude/agents/*.md                   : champ name different du nom du fichier
   <workspace>/.claude/rules/              : refs path:line mortes
   <dossier de notes>/<prefixe>*.md        : refs path:line mortes
   <workspace>/.claude/dette-tracker.jsonl : TODO/marqueurs debug
@@ -26,6 +27,9 @@ Detections SKILL.md (defense en profondeur, 3 niveaux complementaires) :
   1. detect_skill_drift          : hash bit-pour-bit identique entre 2 skills
   2. detect_frontmatter_mismatch : pas de --- ou name != nom_dossier
   3. detect_skill_content_anomaly: shebang, imports Python, contenu non-markdown
+
+Detection agents (fichiers plats, hors des 3 niveaux ci-dessus qui ne lisent que SKILL.md) :
+  detect_agent_name_mismatch : <nom>.md dont le frontmatter porte un autre `name:`
 """
 from __future__ import annotations
 
@@ -468,6 +472,75 @@ def detect_template_corruption(skills_root: str) -> list[tuple[str, str]]:
     return corrupt
 
 
+def read_frontmatter_name(path: str) -> "str | None":
+    """Lit le champ `name:` du frontmatter d'un fichier markdown.
+
+    Tolere le BOM UTF-8, les fins de ligne CRLF et les guillemets autour de la valeur.
+    Un `name:` situe dans le corps (apres le `---` de fermeture) n'est jamais lu.
+
+    Returns:
+        None si le fichier est illisible ou n'ouvre pas par un frontmatter `---` ;
+        "" si le frontmatter n'a pas de champ `name:` ; sinon la valeur du champ.
+    """
+    try:
+        with open(path, "rb") as f:
+            text = f.read().decode("utf-8-sig", errors="replace")
+    except OSError:
+        return None
+    file_lines = text.splitlines()
+    if not file_lines or file_lines[0].rstrip() != "---":
+        return None
+    for line in file_lines[1:]:
+        if line.rstrip() == "---":
+            break
+        if line.startswith("name:"):
+            value = line.split(":", 1)[1].strip()
+            if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+                value = value[1:-1].strip()
+            return value
+    return ""
+
+
+def detect_agent_name_mismatch(
+    agents_root: str,
+) -> "tuple[int | None, list[tuple[str, str, bool]]]":
+    """Detecte les agents dont le champ `name:` differe du nom du fichier.
+
+    Les agents sont des fichiers plats `<nom>.md` : aucune des detections SKILL.md ne les
+    lit. Un agent ecrase par le contenu d'un voisin (rotation lors d'une synchronisation)
+    garde son nom de fichier mais porte le `name:` d'un autre : il repond alors a la
+    place de cet autre agent, sans aucune erreur visible.
+
+    Perimetre : fichiers `.md` a plat dans `agents_root` qui ouvrent par un frontmatter
+    portant un `name:`. Sous-dossiers, autres extensions et fichiers sans frontmatter
+    (notes, README) sont hors perimetre.
+
+    Returns:
+        (examines, divergences). `examines` vaut None si le dossier est absent, sinon le
+        nombre d'agents reellement lus (preuve que le controle a tourne). Chaque
+        divergence est (fichier, name lu, rotation) ; `rotation` est vrai quand le name
+        lu designe un AUTRE agent present dans le dossier (signature d'un ecrasement),
+        faux pour un nom inconnu (renommage en cours ou erreur de saisie).
+    """
+    if not os.path.isdir(agents_root):
+        return None, []
+    files = sorted(
+        f for f in os.listdir(agents_root)
+        if f.endswith(".md") and os.path.isfile(os.path.join(agents_root, f))
+    )
+    stems = {f[:-3] for f in files}
+    examined = 0
+    mismatches: list[tuple[str, str, bool]] = []
+    for fname in files:
+        fm_name = read_frontmatter_name(os.path.join(agents_root, fname))
+        if not fm_name:
+            continue
+        examined += 1
+        if fm_name != fname[:-3]:
+            mismatches.append((fname, fm_name, fm_name in stems))
+    return examined, mismatches
+
+
 def load_dette_tracker(workspace_root: str) -> list[dict]:
     jsonl = os.path.join(workspace_root, ".claude", "dette-tracker.jsonl")
     if not os.path.isfile(jsonl):
@@ -572,6 +645,14 @@ def scan_dead_refs(rules_root: str, memory_root: str) -> list[tuple[str, str]]:
     return dead
 
 
+def agents_scope(stats: dict) -> str:
+    """Portee reelle du controle des agents, pour qu'un 0 ne se lise jamais a l'aveugle."""
+    examined = stats["agents_examined"]
+    if examined is None:
+        return "dossier agents absent"
+    return f"sur {examined} agents examines"
+
+
 def render_summary(stats: dict) -> str:
     lines = [
         f"Dette totale : {stats['total']} entrees ({stats['total_tracked']} tracees, "
@@ -582,6 +663,8 @@ def render_summary(stats: dict) -> str:
         f"Frontmatter mismatch : {stats['frontmatter_mismatch']}",
         f"Content anomalies : {stats['content_anomalies']}",
         f"Templates corrompus : {stats['template_corruption']}",
+        f"Agents au nom divergent : {stats['agent_name_mismatch']} "
+        f"({agents_scope(stats)})",
         f"Refs path:line mortes : {stats['dead_refs']}",
         f"Marqueurs debug : console.log={stats['console_log']}, "
         f"debugger={stats['debugger']}, pdb={stats['pdb']}",
@@ -642,6 +725,31 @@ def render_full_report(stats: dict, today: str) -> str:
             lines.append(f"- `{rel}` -> {reason}")
     lines.append("")
 
+    lines.append("## Agents : nom du fichier different du champ name")
+    if stats["agents_examined"] is None:
+        lines.append("- dossier agents absent (rien a controler)")
+    elif not stats["agent_name_mismatch_list"]:
+        lines.append(
+            f"- aucun ({stats['agents_examined']} agents examines, "
+            "chacun a `name: <fichier>`)"
+        )
+    else:
+        for fname, fm_name, rotated in stats["agent_name_mismatch_list"]:
+            detail = (
+                f"contenu d'un autre agent existant (`{fm_name}.md`), "
+                "signature d'un ecrasement lors d'une synchronisation"
+                if rotated
+                else "nom inconnu (renommage en cours ou erreur de saisie)"
+            )
+            lines.append(
+                f"- `{fname}` -> `name: {fm_name}` (attendu: `{fname[:-3]}`) : {detail}"
+            )
+        lines.append(
+            f"- {stats['agents_examined']} agents examines ; restaurer chaque agent "
+            "ecrase depuis l'historique git du miroir avant toute synchronisation"
+        )
+    lines.append("")
+
     lines.append("## Refs path:line mortes")
     if not stats["dead_refs_list"]:
         lines.append("- aucune")
@@ -689,10 +797,12 @@ def render_full_report(stats: dict, today: str) -> str:
         )
     elif (stats["skills_violations"] or stats["drift_pairs"]
           or stats["frontmatter_mismatch_list"] or stats["content_anomaly_list"]
-          or stats["template_corruption_list"]):
+          or stats["template_corruption_list"]
+          or stats["agent_name_mismatch_list"]):
         lines.append(
             "**Fix immediat** recommande : drift skills, frontmatter mismatch, "
-            "content anomaly, template corrompu ou pre-check residuel detecte."
+            "content anomaly, template corrompu, agent au nom divergent ou "
+            "pre-check residuel detecte."
         )
     else:
         lines.append(
@@ -742,6 +852,11 @@ def compute_stats() -> dict:
     # Template corruption (angle mort frontmatter_mismatch)
     template_corruption_list = detect_template_corruption(skills_root)
 
+    # Agents : nom du fichier different du champ name (fichiers plats, hors skills_root)
+    agents_examined, agent_name_mismatch_list = detect_agent_name_mismatch(
+        os.path.join(home(), ".claude", "agents")
+    )
+
     # Refs path:line mortes
     dead_refs_list = scan_dead_refs(rules_root, memory_root) if memory_root else []
 
@@ -786,6 +901,9 @@ def compute_stats() -> dict:
         "content_anomaly_list": content_anomaly_list,
         "template_corruption": len(template_corruption_list),
         "template_corruption_list": template_corruption_list,
+        "agents_examined": agents_examined,
+        "agent_name_mismatch": len(agent_name_mismatch_list),
+        "agent_name_mismatch_list": agent_name_mismatch_list,
         "dead_refs": len(dead_refs_list),
         "dead_refs_list": dead_refs_list,
         "total": len(todo_entries) + total_debug,
