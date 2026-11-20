@@ -26,6 +26,9 @@ jobs:
       - name: Banc d'essai d'install-skills (faux poste)
         run: bash ci/tests/test-install-skills.sh
 
+      - name: Banc d'essai du controle des agents d'audit-dette (faux poste)
+        run: bash ci/tests/test-audit-dette-agents.sh
+
       - name: Scan anti-fuite de l'arbre entier
         run: bash ci/leak-scan.sh --tree .
 
