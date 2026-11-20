@@ -73,12 +73,12 @@ Reporter la sortie dans le récap de l'audit : chaque ligne `DRIFT` / `ABSENT` /
 
 Si `--full` : le scan génère `<workspace>/.claude/dette-reports/dette-report-YYYY-MM-DD.md`. Le présenter en lecture brève + invitation à drill-down.
 
-Si `--summary` : afficher les lignes de stats (TODO non tracés, drift skills, frontmatter mismatch, content anomalies, templates corrompus, agents au nom divergent, refs mortes, marqueurs debug).
+Si `--summary` : afficher les lignes de stats (TODO non tracés, drift skills, frontmatter mismatch, content anomalies, templates corrompus, agents au nom divergent ou absent, refs mortes, marqueurs debug).
 
 ### Étape 3 — Proposer 3 actions
 
 1. **Sprint dette ciblé** : si > 30 entrées non tracées OU dette > 90 jours → chantier dédié de cleanup.
-2. **Fix immédiat** : si dette critique (drift skills, agent au nom divergent, ref path:line morte sur règle active) → fix dans la session courante. Un agent au nom divergent se restaure depuis l'historique git du miroir AVANT toute synchronisation : sinon la copie écrasée se propage aux autres postes.
+2. **Fix immédiat** : si dette critique (drift skills, agent au nom divergent ou absent, ref path:line morte sur règle active) → fix dans la session courante. Un agent au nom divergent ou absent se restaure depuis l'historique git du miroir AVANT toute synchronisation : sinon la copie écrasée se propage aux autres postes.
 3. **Tracer + ignorer** : si dette acceptable → ajouter une ref datée au TODO existant pour le tracer.
 
 Ne jamais auto-fixer sans validation utilisateur explicite (sauf trivial : ajout de ref date sur un TODO).
@@ -88,7 +88,7 @@ Ne jamais auto-fixer sans validation utilisateur explicite (sauf trivial : ajout
 | Cible | Détection |
 |---|---|
 | `~/.claude/skills/*/SKILL.md` | Commandes externes sans pre-check, redirections silencieuses, skips non typés ; drift hash cross-skills ; frontmatter mismatch ; contenu non-markdown ; templates corrompus |
-| `~/.claude/agents/*.md` (fichiers à plat) | Champ `name:` du frontmatter différent du nom du fichier : agent écrasé par le contenu d'un autre (signalé comme tel si ce nom est celui d'un autre agent présent) ou renommage inachevé. Le résumé donne le nombre d'agents réellement lus |
+| `~/.claude/agents/*.md` (fichiers à plat) | Champ `name:` du frontmatter différent du nom du fichier (casse comprise) : agent écrasé par le contenu d'un autre (signalé comme tel si ce nom est celui d'un autre agent présent) ou renommage inachevé ; frontmatter sans champ `name:`. Le résumé donne le nombre d'agents réellement lus |
 | `<workspace>/.claude/rules/*.md` + notes de mémoire | Refs `path:line` ou wikilinks pointant vers des fichiers absents |
 | `<workspace>/.claude/dette-tracker.jsonl` | TODO/FIXME/HACK/XXX non tracés |
 | code applicatif du workspace (`.ts/.js/.py`) | Marqueurs debug oubliés (`console.log`, `debugger`, `pdb.set_trace`), hors chemins CLI/scripts/workers/tests |
@@ -106,7 +106,7 @@ Ne jamais auto-fixer sans validation utilisateur explicite (sauf trivial : ajout
 ## Frontmatter mismatch
 ## Content anomalies
 ## Templates corrompus
-## Agents : nom du fichier différent du champ name
+## Agents : champ name différent du nom du fichier, ou absent
 ## Refs path:line mortes
 ## TODO/FIXME non tracés — top 10 par âge
 ## Marqueurs debug oubliés

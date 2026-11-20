@@ -14,7 +14,8 @@ Modes :
 Sources scannees (resolues au runtime depuis l'environnement du dev courant) :
   ~/.claude/skills/*/SKILL.md             : pre-check absents, drift hash,
                                             frontmatter mismatch, content anomaly
-  ~/.claude/agents/*.md                   : champ name different du nom du fichier
+  ~/.claude/agents/*.md                   : champ name different du nom du fichier,
+                                            ou absent du frontmatter
   <workspace>/.claude/rules/              : refs path:line mortes
   <dossier de notes>/<prefixe>*.md        : refs path:line mortes
   <workspace>/.claude/dette-tracker.jsonl : TODO/marqueurs debug
@@ -29,7 +30,8 @@ Detections SKILL.md (defense en profondeur, 3 niveaux complementaires) :
   3. detect_skill_content_anomaly: shebang, imports Python, contenu non-markdown
 
 Detection agents (fichiers plats, hors des 3 niveaux ci-dessus qui ne lisent que SKILL.md) :
-  detect_agent_name_mismatch : <nom>.md dont le frontmatter porte un autre `name:`
+  detect_agent_name_mismatch : <nom>.md dont le frontmatter porte un autre `name:`,
+                               ou n'en porte aucun
 """
 from __future__ import annotations
 
@@ -472,15 +474,21 @@ def detect_template_corruption(skills_root: str) -> list[tuple[str, str]]:
     return corrupt
 
 
+FM_NAME_RE = re.compile(r"^name\s*:(.*)$")
+
+
 def read_frontmatter_name(path: str) -> "str | None":
     """Lit le champ `name:` du frontmatter d'un fichier markdown.
 
-    Tolere le BOM UTF-8, les fins de ligne CRLF et les guillemets autour de la valeur.
-    Un `name:` situe dans le corps (apres le `---` de fermeture) n'est jamais lu.
+    Tolere le BOM UTF-8, les fins de ligne CRLF, l'espace avant les deux-points
+    (`name : x`), les guillemets autour de la valeur et un commentaire YAML en fin de
+    ligne (`name: x # note`). Un `name:` indente (cle imbriquee) ou situe dans le corps
+    (apres le `---` de fermeture) n'est jamais lu.
 
     Returns:
         None si le fichier est illisible ou n'ouvre pas par un frontmatter `---` ;
-        "" si le frontmatter n'a pas de champ `name:` ; sinon la valeur du champ.
+        "" si le frontmatter n'a pas de champ `name:` (ou un champ vide) ; sinon la
+        valeur du champ, entiere (jamais tronquee au premier mot).
     """
     try:
         with open(path, "rb") as f:
@@ -493,34 +501,43 @@ def read_frontmatter_name(path: str) -> "str | None":
     for line in file_lines[1:]:
         if line.rstrip() == "---":
             break
-        if line.startswith("name:"):
-            value = line.split(":", 1)[1].strip()
-            if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
-                value = value[1:-1].strip()
-            return value
+        match = FM_NAME_RE.match(line)
+        if not match:
+            continue
+        value = match.group(1).strip()
+        if value[:1] in ("\"", "'"):
+            closing = value.find(value[0], 1)
+            if closing > 0:
+                return value[1:closing].strip()
+        return re.split(r"\s+#", value, maxsplit=1)[0].strip()
     return ""
 
 
 def detect_agent_name_mismatch(
     agents_root: str,
-) -> "tuple[int | None, list[tuple[str, str, bool]]]":
-    """Detecte les agents dont le champ `name:` differe du nom du fichier.
+) -> "tuple[int | None, list[tuple[str, str, str]]]":
+    """Detecte les agents dont le champ `name:` differe du nom du fichier, ou manque.
 
     Les agents sont des fichiers plats `<nom>.md` : aucune des detections SKILL.md ne les
     lit. Un agent ecrase par le contenu d'un voisin (rotation lors d'une synchronisation)
     garde son nom de fichier mais porte le `name:` d'un autre : il repond alors a la
     place de cet autre agent, sans aucune erreur visible.
 
-    Perimetre : fichiers `.md` a plat dans `agents_root` qui ouvrent par un frontmatter
-    portant un `name:`. Sous-dossiers, autres extensions et fichiers sans frontmatter
-    (notes, README) sont hors perimetre.
+    Perimetre : fichiers `.md` a plat dans `agents_root` qui ouvrent par un frontmatter.
+    Sous-dossiers, autres extensions et fichiers sans frontmatter (notes, README) sont
+    hors perimetre. La comparaison respecte la casse, y compris sur un disque qui ne la
+    respecte pas : `Alpha.md` portant `name: alpha` est une divergence.
 
     Returns:
         (examines, divergences). `examines` vaut None si le dossier est absent, sinon le
-        nombre d'agents reellement lus (preuve que le controle a tourne). Chaque
-        divergence est (fichier, name lu, rotation) ; `rotation` est vrai quand le name
-        lu designe un AUTRE agent present dans le dossier (signature d'un ecrasement),
-        faux pour un nom inconnu (renommage en cours ou erreur de saisie).
+        nombre de fichiers reellement lus (preuve que le controle a tourne). Chaque
+        divergence est (fichier, name lu, nature), ou nature vaut :
+          "rotation" : le name lu designe un AUTRE agent present dans le dossier
+                       (signature d'un ecrasement) ;
+          "inconnu"  : le name lu ne designe aucun agent present (renommage en cours ou
+                       erreur de saisie) ;
+          "absent"   : le frontmatter ne porte aucun `name:` (agent inutilisable, ou
+                       fichier ecrase par un contenu qui n'est pas un agent).
     """
     if not os.path.isdir(agents_root):
         return None, []
@@ -530,14 +547,18 @@ def detect_agent_name_mismatch(
     )
     stems = {f[:-3] for f in files}
     examined = 0
-    mismatches: list[tuple[str, str, bool]] = []
+    mismatches: list[tuple[str, str, str]] = []
     for fname in files:
         fm_name = read_frontmatter_name(os.path.join(agents_root, fname))
-        if not fm_name:
+        if fm_name is None:
             continue
         examined += 1
-        if fm_name != fname[:-3]:
-            mismatches.append((fname, fm_name, fm_name in stems))
+        if not fm_name:
+            mismatches.append((fname, "", "absent"))
+        elif fm_name != fname[:-3]:
+            mismatches.append(
+                (fname, fm_name, "rotation" if fm_name in stems else "inconnu")
+            )
     return examined, mismatches
 
 
@@ -663,7 +684,7 @@ def render_summary(stats: dict) -> str:
         f"Frontmatter mismatch : {stats['frontmatter_mismatch']}",
         f"Content anomalies : {stats['content_anomalies']}",
         f"Templates corrompus : {stats['template_corruption']}",
-        f"Agents au nom divergent : {stats['agent_name_mismatch']} "
+        f"Agents au nom divergent ou absent : {stats['agent_name_mismatch']} "
         f"({agents_scope(stats)})",
         f"Refs path:line mortes : {stats['dead_refs']}",
         f"Marqueurs debug : console.log={stats['console_log']}, "
@@ -725,7 +746,7 @@ def render_full_report(stats: dict, today: str) -> str:
             lines.append(f"- `{rel}` -> {reason}")
     lines.append("")
 
-    lines.append("## Agents : nom du fichier different du champ name")
+    lines.append("## Agents : champ name different du nom du fichier, ou absent")
     if stats["agents_examined"] is None:
         lines.append("- dossier agents absent (rien a controler)")
     elif not stats["agent_name_mismatch_list"]:
@@ -734,15 +755,23 @@ def render_full_report(stats: dict, today: str) -> str:
             "chacun a `name: <fichier>`)"
         )
     else:
-        for fname, fm_name, rotated in stats["agent_name_mismatch_list"]:
+        for fname, fm_name, kind in stats["agent_name_mismatch_list"]:
+            expected = fname[:-3]
+            if kind == "absent":
+                lines.append(
+                    f"- `{fname}` -> frontmatter sans champ `name:` (attendu: "
+                    f"`{expected}`) : agent inutilisable, ou fichier ecrase par un "
+                    "contenu qui n'est pas un agent"
+                )
+                continue
             detail = (
                 f"contenu d'un autre agent existant (`{fm_name}.md`), "
                 "signature d'un ecrasement lors d'une synchronisation"
-                if rotated
+                if kind == "rotation"
                 else "nom inconnu (renommage en cours ou erreur de saisie)"
             )
             lines.append(
-                f"- `{fname}` -> `name: {fm_name}` (attendu: `{fname[:-3]}`) : {detail}"
+                f"- `{fname}` -> `name: {fm_name}` (attendu: `{expected}`) : {detail}"
             )
         lines.append(
             f"- {stats['agents_examined']} agents examines ; restaurer chaque agent "
@@ -801,8 +830,8 @@ def render_full_report(stats: dict, today: str) -> str:
           or stats["agent_name_mismatch_list"]):
         lines.append(
             "**Fix immediat** recommande : drift skills, frontmatter mismatch, "
-            "content anomaly, template corrompu, agent au nom divergent ou "
-            "pre-check residuel detecte."
+            "content anomaly, template corrompu, agent au nom divergent ou absent, "
+            "ou pre-check residuel detecte."
         )
     else:
         lines.append(
@@ -852,7 +881,7 @@ def compute_stats() -> dict:
     # Template corruption (angle mort frontmatter_mismatch)
     template_corruption_list = detect_template_corruption(skills_root)
 
-    # Agents : nom du fichier different du champ name (fichiers plats, hors skills_root)
+    # Agents : champ name different du nom du fichier, ou absent (fichiers plats)
     agents_examined, agent_name_mismatch_list = detect_agent_name_mismatch(
         os.path.join(home(), ".claude", "agents")
     )
